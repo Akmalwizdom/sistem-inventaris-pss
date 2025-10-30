@@ -1,351 +1,393 @@
-from django.contrib.auth.models import User
-from django.core import serializers
-from django.db.models import Avg, Count, Max, Min, Sum
-from django.http import JsonResponse
-import json
-
-from core.models import Course, CourseContent, CourseMember, Comment
-from django.shortcuts import render 
-
-
-# ------------------------------------------------------
-# Fungsi bantu / demo
-# ------------------------------------------------------
-def create_test_user(request):
-    user = User.objects.create_user(
-        username="usertesting",
-        email="usertest@email1.com",
-        password="sandietesting",
-    )
-    return JsonResponse({"id": user.id, "username": user.username})
+# core/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
+from django.db.models import Q, F, Sum, Count, Prefetch
+from django.db import transaction
+from django.contrib import messages
+from django.utils import timezone
+from .models import Product, Category, Supplier, StockTransaction
+from .forms import (
+    ProductForm, CategoryForm, SupplierForm, 
+    StockTransactionForm, ProductSearchForm, DateRangeForm
+)
 
 
-def create_course_from_query(request):
-    row = {
-        "name": request.GET.get("name", "Nama Default"),
-        "description": request.GET.get("description", "-"),
-        "price": int(request.GET.get("price", 10000)),
+# ============= DASHBOARD =============
+@login_required
+def dashboard(request):
+    """Dashboard dengan statistik dan optimasi ORM"""
+    today = timezone.now().date()
+    
+    # OPTIMASI: Aggregate queries untuk statistik
+    stats = {
+        'total_products': Product.objects.count(),
+        'total_stock_value': Product.objects.aggregate(
+            total=Sum(F('stock_quantity') * F('purchase_price'))
+        )['total'] or 0,
+        'low_stock_count': Product.objects.filter(
+            stock_quantity__lte=F('minimum_stock')
+        ).count(),
+        'today_transactions': StockTransaction.objects.filter(
+            created_at__date=today
+        ).count(),
     }
-    teacher = User.objects.get(pk=1)
-    course = Course.objects.create(
-        name=row["name"],
-        description=row["description"],
-        price=row["price"],
-        teacher=teacher,
-    )
-    return JsonResponse({"id": course.id, "name": course.name})
+    
+    # OPTIMASI: select_related untuk produk low stock
+    low_stock_products = Product.objects.select_related(
+        'category', 'supplier'
+    ).filter(
+        stock_quantity__lte=F('minimum_stock')
+    ).order_by('stock_quantity')[:5]
+    
+    # Transaksi terbaru dengan optimasi
+    recent_transactions = StockTransaction.objects.select_related(
+        'product', 'created_by'
+    ).order_by('-created_at')[:5]
+    
+    context = {
+        'stats': stats,
+        'low_stock_products': low_stock_products,
+        'recent_transactions': recent_transactions,
+    }
+    
+    return render(request, 'inventory/dashboard.html', context)
 
 
-# ------------------------------------------------------
-# Fungsi Read (Select)
-# ------------------------------------------------------
-def select_all_users(request):
-    users = User.objects.all()
-    user_list = [
-        {"id": user.id, "username": user.username, "email": user.email}
-        for user in users
-    ]
-    return JsonResponse({"users": user_list})
+# ============= PRODUCTS =============
+class ProductListView(LoginRequiredMixin, ListView):
+    model = Product
+    template_name = 'inventory/product_list.html'
+    context_object_name = 'products'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        # OPTIMASI: select_related untuk foreign keys
+        queryset = Product.objects.select_related(
+            'category', 'supplier'
+        )
+        
+        # Search functionality
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) | 
+                Q(sku__icontains=search)
+            )
+        
+        # Filter by category
+        category = self.request.GET.get('category')
+        if category:
+            queryset = queryset.filter(category_id=category)
+        
+        # Filter by supplier
+        supplier = self.request.GET.get('supplier')
+        if supplier:
+            queryset = queryset.filter(supplier_id=supplier)
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_form'] = ProductSearchForm(self.request.GET)
+        return context
 
 
-def select_single_user(request, pk):
-    try:
-        user = User.objects.get(pk=pk)
-        data = {"id": user.id, "username": user.username, "email": user.email}
-        return JsonResponse(data)
-    except User.DoesNotExist:
-        return JsonResponse({"error": "User not found"}, status=404)
+class ProductDetailView(LoginRequiredMixin, DetailView):
+    model = Product
+    template_name = 'inventory/product_detail.html'
+    context_object_name = 'product'
+    
+    def get_object(self):
+        # OPTIMASI: prefetch last 10 transactions
+        return Product.objects.select_related(
+            'category', 'supplier'
+        ).prefetch_related(
+            Prefetch(
+                'transactions',
+                queryset=StockTransaction.objects.select_related(
+                    'created_by'
+                ).order_by('-created_at')[:10],
+                to_attr='recent_transactions'
+            )
+        ).get(pk=self.kwargs['pk'])
 
 
-# ------------------------------------------------------
-# Fungsi Update & Delete
-# ------------------------------------------------------
-def update_user_data(request, pk):
-    try:
-        user = User.objects.get(pk=pk)
-        new_username = request.POST.get("username", user.username)
-        user.username = new_username
-        user.save()
-        return JsonResponse({"status": "success", "username_baru": user.username})
-    except User.DoesNotExist:
-        return JsonResponse(
-            {"status": "error", "message": "User tidak ditemukan"}, status=404
+class ProductCreateView(LoginRequiredMixin, CreateView):
+    model = Product
+    form_class = ProductForm
+    template_name = 'inventory/product_form.html'
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Produk berhasil ditambahkan!')
+        return super().form_valid(form)
+
+
+class ProductUpdateView(LoginRequiredMixin, UpdateView):
+    model = Product
+    form_class = ProductForm
+    template_name = 'inventory/product_form.html'
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Produk berhasil diupdate!')
+        return super().form_valid(form)
+
+
+class ProductDeleteView(LoginRequiredMixin, DeleteView):
+    model = Product
+    template_name = 'inventory/product_confirm_delete.html'
+    success_url = reverse_lazy('product_list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Produk berhasil dihapus!')
+        return super().delete(request, *args, **kwargs)
+
+
+# ============= TRANSACTIONS =============
+class TransactionListView(LoginRequiredMixin, ListView):
+    model = StockTransaction
+    template_name = 'inventory/transaction_list.html'
+    context_object_name = 'transactions'
+    paginate_by = 50
+    
+    def get_queryset(self):
+        # OPTIMASI: select_related untuk menghindari N+1
+        queryset = StockTransaction.objects.select_related(
+            'product',
+            'product__category',
+            'created_by'
+        )
+        
+        # Filter by date range
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        
+        if start_date and end_date:
+            queryset = queryset.filter(
+                created_at__date__range=[start_date, end_date]
+            )
+        
+        # Filter by type
+        trans_type = self.request.GET.get('type')
+        if trans_type:
+            queryset = queryset.filter(transaction_type=trans_type)
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['date_form'] = DateRangeForm(self.request.GET)
+        return context
+
+
+class TransactionCreateView(LoginRequiredMixin, CreateView):
+    model = StockTransaction
+    form_class = StockTransactionForm
+    template_name = 'inventory/transaction_form.html'
+    
+    @transaction.atomic
+    def form_valid(self, form):
+        # OPTIMASI: select_for_update untuk prevent race condition
+        product = Product.objects.select_for_update().get(
+            pk=form.cleaned_data['product'].pk
+        )
+        
+        quantity = form.cleaned_data['quantity']
+        trans_type = form.cleaned_data['transaction_type']
+        
+        # Update stock
+        if trans_type == 'IN':
+            product.stock_quantity += quantity
+            messages.success(
+                self.request, 
+                f'Stock IN berhasil! Stok {product.name} sekarang: {product.stock_quantity}'
+            )
+        else:  # OUT
+            product.stock_quantity -= quantity
+            messages.success(
+                self.request, 
+                f'Stock OUT berhasil! Stok {product.name} sekarang: {product.stock_quantity}'
+            )
+            
+            # Warning jika low stock
+            if product.is_low_stock:
+                messages.warning(
+                    self.request,
+                    f'Peringatan: Stok {product.name} sudah mencapai batas minimum!'
+                )
+        
+        product.save(update_fields=['stock_quantity'])
+        
+        # Save transaction
+        form.instance.created_by = self.request.user
+        
+        return super().form_valid(form)
+
+
+# ============= CATEGORIES =============
+class CategoryListView(LoginRequiredMixin, ListView):
+    model = Category
+    template_name = 'inventory/category_list.html'
+    context_object_name = 'categories'
+    
+    def get_queryset(self):
+        # OPTIMASI: annotate product count
+        return Category.objects.annotate(
+            product_count=Count('products')
         )
 
 
-def delete_user_data(request, pk):
-    try:
-        user = User.objects.get(pk=pk)
-        user.delete()
-        return JsonResponse({"status": "success", "message": f"User ID {pk} telah dihapus"})
-    except User.DoesNotExist:
-        return JsonResponse(
-            {"status": "error", "message": "User tidak ditemukan"}, status=404
+class CategoryCreateView(LoginRequiredMixin, CreateView):
+    model = Category
+    form_class = CategoryForm
+    template_name = 'inventory/category_form.html'
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Kategori berhasil ditambahkan!')
+        return super().form_valid(form)
+
+
+class CategoryUpdateView(LoginRequiredMixin, UpdateView):
+    model = Category
+    form_class = CategoryForm
+    template_name = 'inventory/category_form.html'
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Kategori berhasil diupdate!')
+        return super().form_valid(form)
+
+
+class CategoryDeleteView(LoginRequiredMixin, DeleteView):
+    model = Category
+    template_name = 'inventory/category_confirm_delete.html'
+    success_url = reverse_lazy('category_list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Kategori berhasil dihapus!')
+        return super().delete(request, *args, **kwargs)
+
+
+# ============= SUPPLIERS =============
+class SupplierListView(LoginRequiredMixin, ListView):
+    model = Supplier
+    template_name = 'inventory/supplier_list.html'
+    context_object_name = 'suppliers'
+    
+    def get_queryset(self):
+        # OPTIMASI: annotate product count
+        return Supplier.objects.annotate(
+            product_count=Count('products')
+        )
+
+
+class SupplierCreateView(LoginRequiredMixin, CreateView):
+    model = Supplier
+    form_class = SupplierForm
+    template_name = 'inventory/supplier_form.html'
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Supplier berhasil ditambahkan!')
+        return super().form_valid(form)
+
+
+class SupplierUpdateView(LoginRequiredMixin, UpdateView):
+    model = Supplier
+    form_class = SupplierForm
+    template_name = 'inventory/supplier_form.html'
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Supplier berhasil diupdate!')
+        return super().form_valid(form)
+
+
+class SupplierDeleteView(LoginRequiredMixin, DeleteView):
+    model = Supplier
+    template_name = 'inventory/supplier_confirm_delete.html'
+    success_url = reverse_lazy('supplier_list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Supplier berhasil dihapus!')
+        return super().delete(request, *args, **kwargs)
+
+
+# ============= REPORTS =============
+@login_required
+def stock_report(request):
+    """Laporan stok dengan optimasi ORM"""
+    # OPTIMASI: select_related + annotate
+    products = Product.objects.select_related(
+        'category', 'supplier'
+    ).annotate(
+        stock_value=F('stock_quantity') * F('purchase_price')
+    )
+    
+    # Filter by category
+    category = request.GET.get('category')
+    if category:
+        products = products.filter(category_id=category)
+    
+    # Summary statistics
+    summary = products.aggregate(
+        total_items=Count('id'),
+        total_value=Sum('stock_value')
+    )
+    
+    context = {
+        'products': products,
+        'summary': summary,
+        'categories': Category.objects.all(),
+    }
+    
+    return render(request, 'inventory/reports/stock_report.html', context)
+
+
+@login_required
+def low_stock_report(request):
+    """Laporan produk dengan stok rendah"""
+    products = Product.objects.select_related(
+        'category', 'supplier'
+    ).filter(
+        stock_quantity__lte=F('minimum_stock')
+    ).order_by('stock_quantity')
+    
+    context = {
+        'products': products,
+        'total_low_stock': products.count(),
+    }
+    
+    return render(request, 'inventory/reports/low_stock_report.html', context)
+
+
+@login_required
+def transaction_report(request):
+    """Laporan transaksi dengan filter date range"""
+    # OPTIMASI: select_related
+    transactions = StockTransaction.objects.select_related(
+        'product', 'product__category', 'created_by'
+    )
+    
+    # Filter by date
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if start_date and end_date:
+        transactions = transactions.filter(
+            created_at__date__range=[start_date, end_date]
         )
     
-def delete_all_user_data(request, exclude_user_id):
-    try:
-        # Hapus semua pengguna kecuali user dengan ID tertentu
-        User.objects.exclude(id=exclude_user_id).delete()
-        return JsonResponse({"status": "success", "message": f"Semua pengguna kecuali ID {exclude_user_id} telah dihapus"})
-    except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": f"Pengguna dengan ID {exclude_user_id} tidak ditemukan"}, status=404)
-
-
-def delete_all_course_data(request):
-    Course.objects.all().delete()
-    return JsonResponse({"status": "success", "message": "Semua data kursus telah dihapus"})
-
-
-# ------------------------------------------------------
-# Fungsi Statistik & Seleksi Kursus
-# ------------------------------------------------------
-def courseStat(request):
-    courses = Course.objects.all()
-    course_with_member_count = Course.objects.annotate(
-        member_count=Count('coursemember')
+    # Summary statistics
+    summary = transactions.aggregate(
+        total_in=Sum('quantity', filter=Q(transaction_type='IN')),
+        total_out=Sum('quantity', filter=Q(transaction_type='OUT')),
+        total_transactions=Count('id')
     )
-
-    stats = courses.aggregate(
-        max_price=Max('price'),
-        min_price=Min('price'),
-        avg_price=Avg('price')
-    )
-
-    cheapest = Course.objects.filter(price=stats['min_price']).first()
-    expensive = Course.objects.filter(price=stats['max_price']).first()
-
-    popular = course_with_member_count.order_by('-member_count')[:5]
-    unpopular = course_with_member_count.order_by('member_count')[:5]
-
-    def serialize_course(course_queryset):
-        data = []
-        for course in course_queryset:
-            member_count = getattr(course, 'member_count', 0)
-            data.append({
-                'id': course.id,
-                'name': course.name,
-                'price': course.price,
-                'member_count': member_count
-            })
-        return data
-
-    result = {
-        'course_count': len(courses),
-        'price_stats': {
-            'average': stats['avg_price'],
-            'highest': stats['max_price'],
-            'lowest': stats['min_price']
-        },
-        'cheapest': {
-            'id': cheapest.id if cheapest else None,
-            'name': cheapest.name if cheapest else None,
-            'price': cheapest.price if cheapest else None
-        } if cheapest else None,
-        'expensive': {
-            'id': expensive.id if expensive else None,
-            'name': expensive.name if expensive else None,
-            'price': expensive.price if expensive else None
-        } if expensive else None,
-        'popular': serialize_course(popular),
-        'unpopular': serialize_course(unpopular),
-    }
-    return JsonResponse(result, safe=False)
-
-
-def allUserStat(request):
-    users = User.objects.all()
-    user_stats = User.objects.annotate(
-        courses_created=Count('course', distinct=True),
-        courses_followed_count=Count('coursemember', distinct=True)
-    )
-
-    user_creator_count = user_stats.filter(courses_created__gt=0).count()
-    user_no_course_created_count = user_stats.filter(courses_created=0).count()
-    avg_followed = user_stats.aggregate(
-        avg_followed=Avg('courses_followed_count')
-    )['avg_followed']
-
-    most_followed_user = user_stats.order_by('-courses_followed_count').first()
-    no_followed_courses = user_stats.filter(courses_followed_count=0).values('username', 'email')
-
-    result = {
-        'non_admin_count': users.count(), 
-        'user_creator_count': user_creator_count,
-        'user_no_course_created_count': user_no_course_created_count,
-        'average_followed_courses': avg_followed if avg_followed else 0,
-        'most_followed_user': {
-            'id': most_followed_user.id,
-            'username': most_followed_user.username,
-            'followed_count': most_followed_user.courses_followed_count
-        } if most_followed_user else None,
-        'users_not_following_any': list(no_followed_courses)
-    }
-    return JsonResponse(result, safe=False)
-
-# Di core/views.py
-
-def userDetailStat(request, user_id):
-    try:
-        user = User.objects.get(pk=user_id)
-        user_agg = User.objects.annotate(
-            followed_count=Count('coursemember', distinct=True),
-            created_count=Count('course', distinct=True),
-            total_comments=Count('coursemember__comment', distinct=True) 
-        ).get(pk=user_id)
-
-        followed_count = user_agg.followed_count
-        created_count = user_agg.created_count
-        total_members_in_created_courses = Course.objects.filter(
-            teacher=user
-        ).annotate(
-            member_count=Count('coursemember', distinct=True)
-        ).aggregate(
-            total_members=Sum('member_count')
-        )['total_members'] or 0
-
-        comment_count = user_agg.total_comments
-
-        result = {
-            'user_details': {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-            },
-            'followed_course_count': followed_count,
-            'created_course_count': created_count,
-            'total_members_in_created_courses': total_members_in_created_courses,
-            'posted_comment_count': comment_count,
-        }
-        return JsonResponse(result, safe=False)
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'User not found'}, status=404)
     
-# Di core/views.py
-
-def courseDetailStat(request, course_id):
-    try:
-        course_data = Course.objects.annotate(
-            member_count=Count('coursemember', distinct=True),
-            content_count=Count('coursecontent', distinct=True),
-        ).annotate(
-            comment_count=Count('coursecontent__comment', distinct=True)
-        ).get(pk=course_id)
-
-        contents = CourseContent.objects.filter(course_id=course_data.id).annotate(
-            comment_count_content=Count('comment', distinct=True)
-        ).order_by('-comment_count_content')[:3]
-
-        most_commented_contents = []
-        for content in contents:
-            most_commented_contents.append({
-                'name': content.name,
-                'comment_count': content.comment_count_content
-            })
-
-        result = {
-            'name': course_data.name,
-            'description': course_data.description,
-            'price': course_data.price,
-            'member_count': course_data.member_count,
-            'content_count': course_data.content_count,
-            'total_comment_count': course_data.comment_count,
-            'teacher': {
-                'username': course_data.teacher.username,
-                'email': course_data.teacher.email,
-                'full_name': f"{course_data.teacher.first_name} {course_data.teacher.last_name}",
-            },
-            'most_commented_content': most_commented_contents
-        }
-        return JsonResponse(result, safe=False)
-    except Course.DoesNotExist:
-        return JsonResponse({'error': 'Course not found'}, status=404)    
-
-def courseMemberStat(request):
-    courses = Course.objects.filter(description__contains='python') \
-        .annotate(member_num=Count('coursemember'))
-
-    course_data = []
-    for course in courses:
-        record = {
-            'id': course.id,
-            'name': course.name,
-            'price': course.price,
-            'member_count': course.member_num
-        }
-        course_data.append(record)
-
-    result = {
-        'data_count': len(course_data),
-        'data': course_data
+    context = {
+        'transactions': transactions,
+        'summary': summary,
+        'date_form': DateRangeForm(request.GET),
     }
-    return JsonResponse(result)
-
-
-def allCourse(request):
-    all_course = Course.objects.all()
-    result = []
-
-    for course in all_course:
-        record = {
-            'id': course.id,
-            'name': course.name,
-            'description': course.description,
-            'price': course.price,
-            'teacher': {
-                'id': course.teacher.id,
-                'username': course.teacher.username,
-                'email': course.teacher.email,
-                'fullname': f"{course.teacher.first_name} {course.teacher.last_name}"
-            }
-        }
-        result.append(record)
-
-    return JsonResponse(result, safe=False)
-
-
-def userCourses(request):
-    user = User.objects.get(pk=3)
-    courses = Course.objects.filter(teacher=user.id)
-
-    course_data = []
-    for course in courses:
-        record = {
-            'id': course.id,
-            'name': course.name,
-            'description': course.description,
-            'price': course.price
-        }
-        course_data.append(record)
-
-    result = {
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'fullname': f"{user.first_name} {user.last_name}",
-        'courses': course_data
-    }
-    return JsonResponse(result, safe=False)
-
-
-# ------------------------------------------------------
-# Fungsi Testing / Validasi
-# ------------------------------------------------------
-def testing(request):
-    user_test = User.objects.filter(username="usertesting")
-    if not user_test.exists():
-        user_test = User.objects.create_user(
-            username="usertesting",
-            email="usertest@email.com",
-            password="sanditesting"
-        )
-    all_users = serializers.serialize('python', User.objects.all())
-    admin = User.objects.get(pk=1)
-    user_test.delete()
-    after_delete = serializers.serialize('python', User.objects.all())
-    response = {
-        "admin_user": serializers.serialize('python', [admin])[0],
-        "all_users": all_users,
-        "after_del": after_delete,
-    }
-    return JsonResponse(response)
+    
+    return render(request, 'inventory/reports/transaction_report.html', context)

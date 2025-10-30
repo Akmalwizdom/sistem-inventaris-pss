@@ -1,4 +1,18 @@
-django
-psycopg2-binary
-Pillow
-django-silk==5.1.0
+# requirements.txt
+
+# Django Core
+Django==5.0
+psycopg2-binary==2.9.9
+
+# Environment
+python-decouple==3.8
+
+# Development Tools
+django-debug-toolbar==4.2.0
+
+# Testing
+pytest==7.4.3
+pytest-django==4.7.0
+
+# Production
+gunicorn==21.2.0

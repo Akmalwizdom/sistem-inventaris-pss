@@ -1,68 +1,173 @@
+# core/models.py
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
+from django.urls import reverse
+from decimal import Decimal
 
-class Course(models.Model):
-    name = models.CharField("nama matkul", max_length=100)
-    description = models.TextField("deskripsi", default='-')
-    price = models.IntegerField("harga", default=10000)
-    image = models.ImageField("gambar", null=True, blank=True)
-    teacher = models.ForeignKey(User, verbose_name="pengajar", on_delete=models.RESTRICT)
+class Category(models.Model):
+    name = models.CharField("Nama Kategori", max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     class Meta:
-        verbose_name = "Mata Kuliah"
-        verbose_name_plural = "Mata Kuliah"
-
+        verbose_name = "Kategori"
+        verbose_name_plural = "Kategori"
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name']),
+        ]
+    
     def __str__(self):
         return self.name
+    
+    def get_absolute_url(self):
+        return reverse('category_list')
 
-ROLE_OPTIONS = [
-    ('std', "Siswa"),
-    ('ast', "Asisten"),
-]
 
-class CourseMember(models.Model):
-    course_id = models.ForeignKey(Course, verbose_name="matkul", on_delete=models.CASCADE)
-    user_id = models.ForeignKey(User, verbose_name="siswa", on_delete=models.CASCADE)
-    role = models.CharField("peran", max_length=5, choices=ROLE_OPTIONS, default='std')
+class Supplier(models.Model):
+    name = models.CharField("Nama Supplier", max_length=200)
+    phone = models.CharField("Telepon", max_length=20)
+    address = models.TextField("Alamat")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     class Meta:
-        verbose_name = "Subscriber Matkul"
-        verbose_name_plural = "Subscriber Matkul"
-
+        verbose_name = "Supplier"
+        verbose_name_plural = "Supplier"
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name']),
+        ]
+    
     def __str__(self):
-        return f'{self.user_id}'
+        return self.name
+    
+    def get_absolute_url(self):
+        return reverse('supplier_list')
 
-class CourseContent(models.Model):
-    name = models.CharField("judul konten", max_length=200)
-    description = models.TextField("deskripsi", default='-')
-    video_url = models.URLField("URL video", max_length=200, null=True, blank=True)
-    file_attachment = models.FileField("file", null=True, blank=True)
-    course_id = models.ForeignKey(Course, verbose_name="matkul", on_delete=models.RESTRICT)
-    parent_id = models.ForeignKey("self", verbose_name="induk", null=True, blank=True, on_delete=models.RESTRICT)
+
+class Product(models.Model):
+    sku = models.CharField("SKU", max_length=50, unique=True, db_index=True)
+    name = models.CharField("Nama Produk", max_length=200, db_index=True)
+    category = models.ForeignKey(
+        Category, 
+        verbose_name="Kategori",
+        on_delete=models.PROTECT,
+        related_name='products'
+    )
+    supplier = models.ForeignKey(
+        Supplier,
+        verbose_name="Supplier",
+        on_delete=models.PROTECT,
+        related_name='products'
+    )
+    
+    purchase_price = models.DecimalField(
+        "Harga Beli",
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
+    selling_price = models.DecimalField(
+        "Harga Jual",
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
+    
+    stock_quantity = models.IntegerField(
+        "Jumlah Stok",
+        default=0,
+        validators=[MinValueValidator(0)]
+    )
+    minimum_stock = models.IntegerField(
+        "Stok Minimum",
+        default=10,
+        validators=[MinValueValidator(0)]
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     class Meta:
-        verbose_name = "Konten Matkul"
-        verbose_name_plural = "Konten Matkul"
-
+        verbose_name = "Produk"
+        verbose_name_plural = "Produk"
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['sku']),
+            models.Index(fields=['name']),
+            models.Index(fields=['category', 'supplier']),
+        ]
+    
     def __str__(self):
-        return f"[{self.course_id}] {self.name}"
+        return f"{self.sku} - {self.name}"
+    
+    def get_absolute_url(self):
+        return reverse('product_detail', kwargs={'pk': self.pk})
+    
+    @property
+    def is_low_stock(self):
+        """Cek apakah stok rendah"""
+        return self.stock_quantity <= self.minimum_stock
+    
+    @property
+    def stock_value(self):
+        """Hitung nilai total stok"""
+        return self.stock_quantity * self.purchase_price
+    
+    @property
+    def profit_margin(self):
+        """Hitung margin keuntungan dalam persen"""
+        if self.purchase_price > 0:
+            return ((self.selling_price - self.purchase_price) / 
+                   self.purchase_price * 100)
+        return 0
 
-class Comment(models.Model):
-    content_id = models.ForeignKey(CourseContent, verbose_name="konten", on_delete=models.CASCADE)
-    member_id = models.ForeignKey(CourseMember, verbose_name="pengguna", on_delete=models.CASCADE)
-    comment = models.TextField("komentar")
+
+class StockTransaction(models.Model):
+    TYPES = [
+        ('IN', 'Stock In'),
+        ('OUT', 'Stock Out'),
+    ]
+    
+    product = models.ForeignKey(
+        Product,
+        verbose_name="Produk",
+        on_delete=models.PROTECT,
+        related_name='transactions'
+    )
+    transaction_type = models.CharField(
+        "Tipe Transaksi",
+        max_length=3,
+        choices=TYPES
+    )
+    quantity = models.IntegerField(
+        "Jumlah",
+        validators=[MinValueValidator(1)]
+    )
+    notes = models.TextField("Catatan", blank=True)
+    
+    created_by = models.ForeignKey(
+        User,
+        verbose_name="Dibuat Oleh",
+        on_delete=models.PROTECT,
+        related_name='stock_transactions'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
+    
     class Meta:
-        verbose_name = "Komentar"
-        verbose_name_plural = "Komentar"
-
+        verbose_name = "Transaksi Stok"
+        verbose_name_plural = "Transaksi Stok"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['product', '-created_at']),
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['transaction_type']),
+        ]
+    
     def __str__(self):
-        return f"Komentar: {self.content_id.name} - {self.member_id.user_id}"
+        return f"{self.get_transaction_type_display()} - {self.product.name} ({self.quantity})"
+    
+    def get_absolute_url(self):
+        return reverse('transaction_list')
