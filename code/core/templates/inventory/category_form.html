@@ -1,0 +1,46 @@
+<!-- templates/inventory/category_form.html -->
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit{% else %}Tambah{% endif %} Kategori{% endblock %}
+{% block page_title %}{% if object %}Edit{% else %}Tambah{% endif %} Kategori{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-{% if object %}pencil{% else %}plus-circle{% endif %}"></i>
+                    {% if object %}Edit Kategori{% else %}Tambah Kategori Baru{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-tag"></i> Nama Kategori *
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger small">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'category_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Batal
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

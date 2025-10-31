@@ -1,15 +1,16 @@
-from django.conf import settings
+# simplelms/local_settings.py
+import os
 
-DEBUG = True
-ALLOWED_HOSTS = ['*']
-
-
+# POSTGRESQL FOR DOCKER (konfigurasi sesuai docker-compose)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'simple_lms',
-        'USER': 'simple_user',
-        'PASSWORD': 'simple_password',
-        'HOST': 'simple_db',
+        'ENGINE': 'django.db.backends.postgresql',
+        # Menggunakan kredensial dari docker-compose.yml sebagai default
+        'NAME': os.environ.get('POSTGRES_DB', 'simple_lms'),
+        'USER': os.environ.get('POSTGRES_USER', 'simple_user'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'simple_password'),
+        # Mengubah HOST agar sesuai dengan nama service
+        'HOST': os.environ.get('DATABASE_HOST', 'postgres'),  # 'postgres' adalah nama service
+        'PORT': '5432',
     }
 }

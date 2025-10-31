@@ -1,0 +1,127 @@
+<!-- templates/inventory/reports/low_stock_report.html -->
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Low Stock Alert{% endblock %}
+{% block page_title %}Low Stock Alert{% endblock %}
+
+{% block content %}
+<div class="mb-3 no-print">
+    <h4 class="text-danger">
+        <i class="bi bi-exclamation-triangle-fill"></i> Low Stock Alert
+    </h4>
+    <p class="text-muted">Daftar produk yang stoknya mencapai atau di bawah batas minimum</p>
+</div>
+
+<!-- Alert Summary -->
+<div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+    <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+    <div>
+        <h5 class="mb-1">Perhatian!</h5>
+        <p class="mb-0">
+            Terdapat <strong>{{ total_low_stock }}</strong> produk dengan stok rendah yang memerlukan perhatian segera.
+        </p>
+    </div>
+</div>
+
+<!-- Report Title (for print) -->
+<div class="text-center mb-3" style="display:none;">
+    <h3>LAPORAN LOW STOCK ALERT</h3>
+    <p>Tanggal: {% now "d F Y" %}</p>
+    <p class="text-danger">Total Produk Low Stock: {{ total_low_stock }}</p>
+</div>
+
+<!-- Low Stock Table -->
+<div class="card">
+    <div class="card-body">
+        {% if products %}
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-danger">
+                        <tr>
+                            <th width="10%">SKU</th>
+                            <th width="25%">Nama Produk</th>
+                            <th width="15%">Kategori</th>
+                            <th width="15%">Supplier</th>
+                            <th width="10%" class="text-center">Stok Saat Ini</th>
+                            <th width="10%" class="text-center">Min. Stok</th>
+                            <th width="10%" class="text-center">Selisih</th>
+                            <th width="5%" class="text-center no-print">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td><code>{{ product.sku }}</code></td>
+                            <td>
+                                <strong>{{ product.name }}</strong>
+                            </td>
+                            <td>{{ product.category.name }}</td>
+                            <td>
+                                {{ product.supplier.name }}<br>
+                                <small class="text-muted">
+                                    <i class="bi bi-telephone"></i> {{ product.supplier.phone }}
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-danger fs-6">
+                                    {{ product.stock_quantity }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">
+                                    {{ product.minimum_stock }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-warning text-dark">
+                                    {{ product.minimum_stock|add:"-"|add:product.stock_quantity }}
+                                </span>
+                            </td>
+                            <td class="text-center no-print">
+                                <a href="{% url 'transaction_create' %}?product={{ product.pk }}" 
+                                   class="btn btn-sm btn-success" 
+                                   title="Stock IN">
+                                    <i class="bi bi-plus-circle"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="alert alert-info mt-3">
+                <i class="bi bi-info-circle"></i>
+                <strong>Rekomendasi:</strong> Segera lakukan pemesanan untuk produk-produk di atas agar tidak kehabisan stok.
+            </div>
+        {% else %}
+            <div class="text-center text-success py-5">
+                <i class="bi bi-check-circle fs-1 d-block mb-3"></i>
+                <h5>Semua Produk Aman!</h5>
+                <p class="mb-0">Tidak ada produk dengan stok rendah saat ini.</p>
+            </div>
+        {% endif %}
+        
+        <div class="text-center mt-3 no-print">
+            <button onclick="window.print()" class="btn btn-secondary">
+                <i class="bi bi-printer"></i> Print Laporan
+            </button>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                <i class="bi bi-house"></i> Kembali ke Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .text-center.mb-3 {
+            display: block !important;
+        }
+        .alert {
+            page-break-inside: avoid;
+        }
+    }
+</style>
+{% endblock %}

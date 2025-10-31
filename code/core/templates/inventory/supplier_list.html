@@ -1,0 +1,75 @@
+<!-- templates/inventory/supplier_list.html -->
+{% extends 'base.html' %}
+
+{% block title %}Daftar Supplier{% endblock %}
+{% block page_title %}Daftar Supplier{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">
+        <i class="bi bi-truck"></i> Daftar Supplier
+    </h4>
+    <a href="{% url 'supplier_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Tambah Supplier
+    </a>
+</div>
+
+<div class="row">
+    {% for supplier in suppliers %}
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="card-title mb-1">
+                            <i class="bi bi-building"></i> {{ supplier.name }}
+                        </h5>
+                        <span class="badge bg-primary">
+                            {{ supplier.product_count }} Produk
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mb-2">
+                    <i class="bi bi-telephone-fill text-primary"></i>
+                    <strong>Telepon:</strong> {{ supplier.phone }}
+                </div>
+                
+                <div class="mb-2">
+                    <i class="bi bi-geo-alt-fill text-danger"></i>
+                    <strong>Alamat:</strong><br>
+                    <small>{{ supplier.address }}</small>
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar"></i> 
+                        Dibuat: {{ supplier.created_at|date:"d M Y" }}
+                    </small>
+                    <div>
+                        <a href="{% url 'supplier_update' supplier.pk %}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a href="{% url 'supplier_delete' supplier.pk %}" class="btn btn-sm btn-danger">
+                            <i class="bi bi-trash"></i> Hapus
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            <p>Belum ada supplier</p>
+            <a href="{% url 'supplier_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Tambah Supplier Pertama
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

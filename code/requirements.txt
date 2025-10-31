@@ -1,18 +1,11 @@
-# requirements.txt
-
-# Django Core
 Django==5.0
-psycopg2-binary==2.9.9
-
-# Environment
+psycopg2-binary==2.9.11
 python-decouple==3.8
-
-# Development Tools
 django-debug-toolbar==4.2.0
-
-# Testing
 pytest==7.4.3
 pytest-django==4.7.0
-
-# Production
 gunicorn==21.2.0
+pillow==10.4.0
+
+setuptools>=60.0
+django-silk==5.4.3

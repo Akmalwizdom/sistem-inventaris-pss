@@ -1,0 +1,219 @@
+<!-- templates/inventory/product_detail.html -->
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Detail Produk - {{ product.name }}{% endblock %}
+{% block page_title %}Detail Produk{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'product_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Kembali ke Daftar
+    </a>
+</div>
+
+<div class="row g-3">
+    <!-- Product Info Card -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-box-seam"></i> Informasi Produk
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small">SKU</label>
+                        <h4><code>{{ product.sku }}</code></h4>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Nama Produk</label>
+                        <h4>{{ product.name }}</h4>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small d-block">Kategori</label>
+                        <span class="badge bg-secondary fs-6">
+                            <i class="bi bi-tag"></i> {{ product.category.name }}
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small d-block">Supplier</label>
+                        <span class="fs-6">
+                            <i class="bi bi-truck"></i> {{ product.supplier.name }}
+                        </span>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="text-muted small">Harga Beli</label>
+                        <h5 class="text-success">
+                            Rp {{ product.purchase_price|floatformat:0|intcomma }}
+                        </h5>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">Harga Jual</label>
+                        <h5 class="text-primary">
+                            Rp {{ product.selling_price|floatformat:0|intcomma }}
+                        </h5>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">Margin Profit</label>
+                        <h5 class="text-info">
+                            {{ product.profit_margin|floatformat:1 }}%
+                        </h5>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="text-muted small">Stok Saat Ini</label>
+                        <h3>
+                            {% if product.is_low_stock %}
+                                <span class="badge bg-danger fs-4">
+                                    {{ product.stock_quantity }} 
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success fs-4">
+                                    {{ product.stock_quantity }}
+                                </span>
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Stok Minimum</label>
+                        <h3>
+                            <span class="badge bg-secondary fs-4">
+                                {{ product.minimum_stock }}
+                            </span>
+                        </h3>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="text-muted small">Nilai Stok Total</label>
+                        <h5 class="text-success">
+                            Rp {{ product.stock_value|floatformat:0|intcomma }}
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Dibuat Pada</label>
+                        <p>{{ product.created_at|date:"d F Y, H:i" }}</p>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{% url 'product_update' product.pk %}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Edit Produk
+                    </a>
+                    <a href="{% url 'product_delete' product.pk %}" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Hapus
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Action Card -->
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightning"></i> Quick Action
+                </h6>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'transaction_create' %}?product={{ product.pk }}" class="btn btn-success w-100 mb-2">
+                    <i class="bi bi-arrow-down-circle"></i> Stock IN
+                </a>
+                <a href="{% url 'transaction_create' %}?product={{ product.pk }}&type=OUT" class="btn btn-danger w-100">
+                    <i class="bi bi-arrow-up-circle"></i> Stock OUT
+                </a>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Informasi Supplier
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6>{{ product.supplier.name }}</h6>
+                <p class="mb-1">
+                    <i class="bi bi-telephone"></i> {{ product.supplier.phone }}
+                </p>
+                <p class="mb-0 small text-muted">
+                    <i class="bi bi-geo-alt"></i> {{ product.supplier.address|truncatewords:10 }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction History -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-clock-history"></i> History Transaksi (10 Terakhir)
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if product.recent_transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tanggal & Waktu</th>
+                            <th class="text-center">Tipe</th>
+                            <th class="text-center">Jumlah</th>
+                            <th>User</th>
+                            <th>Catatan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trans in product.recent_transactions %}
+                        <tr>
+                            <td>{{ trans.created_at|date:"d M Y, H:i" }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-{% if trans.transaction_type == 'IN' %}success{% else %}danger{% endif %}">
+                                    {{ trans.get_transaction_type_display }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <strong>{{ trans.quantity }}</strong>
+                            </td>
+                            <td>
+                                <i class="bi bi-person-circle"></i> {{ trans.created_by.username }}
+                            </td>
+                            <td>
+                                <small>{{ trans.notes|default:"-" }}</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                Belum ada transaksi untuk produk ini
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

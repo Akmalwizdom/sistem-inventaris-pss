@@ -1,0 +1,170 @@
+<!-- templates/inventory/reports/transaction_report.html -->
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Laporan Transaksi{% endblock %}
+{% block page_title %}Laporan Transaksi{% endblock %}
+
+{% block content %}
+<div class="mb-3 no-print">
+    <h4>
+        <i class="bi bi-graph-up"></i> Laporan Transaksi Stok
+    </h4>
+    <p class="text-muted">History transaksi keluar masuk stok produk</p>
+</div>
+
+<!-- Filter -->
+<div class="card mb-3 no-print">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Tanggal Mulai</label>
+                {{ date_form.start_date }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Tanggal Akhir</label>
+                {{ date_form.end_date }}
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Transaksi</h6>
+                <h2 class="mb-0">{{ summary.total_transactions|default:0 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Stock IN</h6>
+                <h2 class="mb-0">{{ summary.total_in|default:0 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Stock OUT</h6>
+                <h2 class="mb-0">{{ summary.total_out|default:0 }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Title (for print) -->
+<div class="text-center mb-3" style="display:none;">
+    <h3>LAPORAN TRANSAKSI STOK</h3>
+    {% if request.GET.start_date and request.GET.end_date %}
+        <p>Periode: {{ request.GET.start_date }} s/d {{ request.GET.end_date }}</p>
+    {% else %}
+        <p>Tanggal: {% now "d F Y" %}</p>
+    {% endif %}
+</div>
+
+<!-- Transaction Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th width="12%">Tanggal</th>
+                        <th width="10%">SKU</th>
+                        <th width="23%">Produk</th>
+                        <th width="15%">Kategori</th>
+                        <th width="10%" class="text-center">Tipe</th>
+                        <th width="8%" class="text-center">Qty</th>
+                        <th width="12%">User</th>
+                        <th width="10%">Catatan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trans in transactions %}
+                    <tr>
+                        <td>
+                            {{ trans.created_at|date:"d M Y" }}<br>
+                            <small class="text-muted">{{ trans.created_at|date:"H:i" }}</small>
+                        </td>
+                        <td><code>{{ trans.product.sku }}</code></td>
+                        <td>{{ trans.product.name }}</td>
+                        <td>{{ trans.product.category.name }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-{% if trans.transaction_type == 'IN' %}success{% else %}danger{% endif %}">
+                                {% if trans.transaction_type == 'IN' %}
+                                    IN
+                                {% else %}
+                                    OUT
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <strong>{{ trans.quantity }}</strong>
+                        </td>
+                        <td>
+                            <small>{{ trans.created_by.username }}</small>
+                        </td>
+                        <td>
+                            <small>{{ trans.notes|default:"-"|truncatewords:5 }}</small>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            Tidak ada transaksi dalam periode yang dipilih
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <th colspan="5" class="text-end">Total IN:</th>
+                        <th class="text-center">{{ summary.total_in|default:0 }}</th>
+                        <th colspan="2"></th>
+                    </tr>
+                    <tr>
+                        <th colspan="5" class="text-end">Total OUT:</th>
+                        <th class="text-center">{{ summary.total_out|default:0 }}</th>
+                        <th colspan="2"></th>
+                    </tr>
+                    <tr class="table-info">
+                        <th colspan="5" class="text-end">Net Change:</th>
+                        <th class="text-center">
+                            {% widthratio summary.total_in|default:0 1 1 %} - {% widthratio summary.total_out|default:0 1 1 %} = 
+                            <strong>{{ summary.total_in|default:0|add:"-"|add:summary.total_out|default:0 }}</strong>
+                        </th>
+                        <th colspan="2"></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="text-center mt-3 no-print">
+            <button onclick="window.print()" class="btn btn-secondary">
+                <i class="bi bi-printer"></i> Print Laporan
+            </button>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                <i class="bi bi-house"></i> Kembali ke Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .text-center.mb-3 {
+            display: block !important;
+        }
+    }
+</style>
+{% endblock %}

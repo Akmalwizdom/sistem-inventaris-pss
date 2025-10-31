@@ -1,0 +1,10 @@
+INFO 2025-10-31 04:56:57,892 autoreload 80 139664284982208 Watching for file changes with StatReloader
+INFO 2025-10-31 04:58:10,098 autoreload 80 139664284982208 /code/simplelms/urls.py changed, reloading.
+INFO 2025-10-31 04:58:16,230 autoreload 82 139626134858688 Watching for file changes with StatReloader
+INFO 2025-10-31 05:01:08,183 autoreload 82 139626134858688 /code/simplelms/settings.py changed, reloading.
+INFO 2025-10-31 05:01:28,870 autoreload 86 139704452246464 Watching for file changes with StatReloader
+INFO 2025-10-31 05:08:45,256 autoreload 86 139704452246464 /code/simplelms/settings.py changed, reloading.
+INFO 2025-10-31 05:08:54,985 Watching for file changes with StatReloader
+INFO 2025-10-31 05:09:07,602 /code/simplelms/settings.py changed, reloading.
+INFO 2025-10-31 05:09:09,106 Watching for file changes with StatReloader
+INFO 2025-10-31 05:09:35,400 /code/simplelms/settings.py changed, reloading.

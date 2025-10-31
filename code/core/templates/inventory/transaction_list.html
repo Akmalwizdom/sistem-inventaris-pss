@@ -1,0 +1,135 @@
+<!-- templates/inventory/transaction_list.html -->
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Daftar Transaksi{% endblock %}
+{% block page_title %}Daftar Transaksi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">
+        <i class="bi bi-arrow-left-right"></i> Daftar Transaksi
+    </h4>
+    <a href="{% url 'transaction_create' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Transaksi Baru
+    </a>
+</div>
+
+<!-- Filter -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Tanggal Mulai</label>
+                {{ date_form.start_date }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Tanggal Akhir</label>
+                {{ date_form.end_date }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Tipe Transaksi</label>
+                <select name="type" class="form-control">
+                    <option value="">Semua</option>
+                    <option value="IN" {% if request.GET.type == 'IN' %}selected{% endif %}>Stock IN</option>
+                    <option value="OUT" {% if request.GET.type == 'OUT' %}selected{% endif %}>Stock OUT</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tanggal & Waktu</th>
+                        <th>Produk</th>
+                        <th class="text-center">Tipe</th>
+                        <th class="text-center">Jumlah</th>
+                        <th>User</th>
+                        <th>Catatan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trans in transactions %}
+                    <tr>
+                        <td>
+                            <i class="bi bi-calendar3"></i>
+                            {{ trans.created_at|date:"d M Y" }}<br>
+                            <small class="text-muted">{{ trans.created_at|date:"H:i" }}</small>
+                        </td>
+                        <td>
+                            <a href="{% url 'product_detail' trans.product.pk %}" class="text-decoration-none">
+                                <strong>{{ trans.product.name }}</strong><br>
+                                <small class="text-muted">{{ trans.product.sku }}</small>
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-{% if trans.transaction_type == 'IN' %}success{% else %}danger{% endif %} fs-6">
+                                {% if trans.transaction_type == 'IN' %}
+                                    <i class="bi bi-arrow-down-circle"></i> Stock IN
+                                {% else %}
+                                    <i class="bi bi-arrow-up-circle"></i> Stock OUT
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <strong class="fs-5">{{ trans.quantity }}</strong>
+                        </td>
+                        <td>
+                            <i class="bi bi-person-circle"></i> {{ trans.created_by.username }}
+                        </td>
+                        <td>
+                            <small>{{ trans.notes|default:"-"|truncatewords:10 }}</small>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Tidak ada transaksi
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }}</span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

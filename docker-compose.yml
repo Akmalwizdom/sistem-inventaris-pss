@@ -11,6 +11,10 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=simplelms.settings
       - DEBUG=True
+      - DATABASE_HOST=postgres
+      - DATABASE_NAME=simple_lms
+      - DATABASE_USER=simple_user
+      - DATABASE_PASSWORD=simple_password
     depends_on:
       - postgres
   postgres:
