@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}Katalog Produk - InventoryPro{% endblock %}
+
+{% block content %}
+<!-- Hero Section with Statistics -->
+<div class="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <p class="text-primary-100 text-sm mb-2">Total Produk</p>
+                <p class="text-4xl font-bold">{{ stats.total_products }}</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <p class="text-primary-100 text-sm mb-2">Total Nilai Stok</p>
+                <p class="text-4xl font-bold">Rp {{ stats.total_stock_value|floatformat:0 }}</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <p class="text-primary-100 text-sm mb-2">Stok Rendah</p>
+                <p class="text-4xl font-bold text-yellow-300">{{ stats.low_stock_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mx-auto px-4 py-8">
+    <!-- Header Section -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    📦 Katalog Produk
+                </h1>
+                <p class="text-gray-600">
+                    Temukan dan kelola produk dalam sistem inventaris Anda
+                </p>
+            </div>
+            <a href="/admin/core/product/add/" 
+               target="_blank"
+               class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                <i class="fas fa-plus"></i>
+                <span>Tambah Produk</span>
+            </a>
+        </div>
+
+        <!-- Search and Filter -->
+        <div x-data="{ showFilter: false }">
+            <form method="GET" action="{% url 'home' %}" class="space-y-4">
+                <div class="flex gap-3">
+                    <div class="flex-1 relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" 
+                               name="search" 
+                               value="{{ search }}"
+                               placeholder="Cari produk berdasarkan nama atau SKU..."
+                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
+                    </div>
+                    
+                    <button type="button" 
+                            @click="showFilter = !showFilter"
+                            class="bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-lg border border-gray-300 transition-colors duration-200 flex items-center space-x-2">
+                        <i class="fas fa-filter"></i>
+                        <span>Filter</span>
+                    </button>
+
+                    <button type="submit"
+                            class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                        Cari
+                    </button>
+                </div>
+
+                <!-- Filter Panel -->
+                <div x-show="showFilter" 
+                     x-cloak
+                     x-transition
+                     class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-tag mr-1"></i>Kategori
+                            </label>
+                            <select name="category" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none">
+                                <option value="">Semua Kategori</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cat.name }} ({{ cat.product_count }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-truck mr-1"></i>Supplier
+                            </label>
+                            <select name="supplier"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none">
+                                <option value="">Semua Supplier</option>
+                                {% for sup in suppliers %}
+                                <option value="{{ sup.id }}" {% if selected_supplier == sup.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ sup.name }} ({{ sup.product_count }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-exclamation-circle mr-1"></i>Status Stok
+                            </label>
+                            <select name="low_stock"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none">
+                                <option value="">Semua Status</option>
+                                <option value="true" {% if low_stock_filter == 'true' %}selected{% endif %}>Stok Rendah</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-2">
+                        <a href="{% url 'home' %}" 
+                           class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors">
+                            Reset
+                        </a>
+                        <button type="submit"
+                                class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                            Terapkan Filter
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    {% if products %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for product in products %}
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6">
+            <!-- Header -->
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-primary-100 p-3 rounded-lg">
+                        <i class="fas fa-cube text-primary-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-900">
+                            {{ product.name }}
+                        </h3>
+                        <p class="text-sm text-gray-500">SKU: {{ product.sku }}</p>
+                    </div>
+                </div>
+                
+                <!-- Stock Status Badge -->
+                {% if product.is_low_stock %}
+                <span class="flex items-center space-x-1 bg-red-100 text-red-700 text-xs font-medium px-2.5 py-1 rounded-full">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Low Stock</span>
+                </span>
+                {% else %}
+                <span class="flex items-center space-x-1 bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Available</span>
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Category & Supplier -->
+            <div class="mb-4 space-y-2">
+                <div class="flex items-center text-sm">
+                    <span class="text-gray-500 w-24"><i class="fas fa-tag mr-1"></i>Kategori:</span>
+                    <span class="font-medium text-gray-900">{{ product.category.name }}</span>
+                </div>
+                <div class="flex items-center text-sm">
+                    <span class="text-gray-500 w-24"><i class="fas fa-truck mr-1"></i>Supplier:</span>
+                    <span class="font-medium text-gray-900">{{ product.supplier.name }}</span>
+                </div>
+            </div>
+
+            <!-- Stock Info -->
+            <div class="border-t border-gray-200 pt-4 mb-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Stok Tersedia</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ product.stock_quantity }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Stok Minimum</p>
+                        <p class="text-2xl font-bold text-gray-500">{{ product.minimum_stock }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Info -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Harga Beli:</span>
+                    <span class="font-medium text-gray-900">Rp {{ product.purchase_price|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Harga Jual:</span>
+                    <span class="font-medium text-primary-600">Rp {{ product.selling_price|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between text-sm pt-2 border-t border-gray-200">
+                    <span class="text-gray-500">Nilai Stok:</span>
+                    <span class="font-semibold text-gray-900">Rp {{ product.stock_value|floatformat:0 }}</span>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <a href="{% url 'product_detail' product.pk %}" 
+                   class="block w-full text-center bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg border border-gray-300 transition-colors text-sm">
+                    Lihat Detail
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20">
+        <i class="fas fa-cube text-gray-400 text-6xl mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">
+            Tidak ada produk ditemukan
+        </h3>
+        <p class="text-gray-600 mb-6">
+            Coba ubah filter atau kata kunci pencarian Anda
+        </p>
+        <a href="{% url 'home' %}" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded-lg transition-colors inline-block">
+            Reset Filter
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

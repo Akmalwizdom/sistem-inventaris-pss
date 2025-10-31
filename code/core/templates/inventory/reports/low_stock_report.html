@@ -1,127 +1,218 @@
-<!-- templates/inventory/reports/low_stock_report.html -->
 {% extends 'base.html' %}
-{% load humanize %}
 
-{% block title %}Low Stock Alert{% endblock %}
-{% block page_title %}Low Stock Alert{% endblock %}
+{% block title %}Laporan Stok Rendah - InventoryPro{% endblock %}
 
 {% block content %}
-<div class="mb-3 no-print">
-    <h4 class="text-danger">
-        <i class="bi bi-exclamation-triangle-fill"></i> Low Stock Alert
-    </h4>
-    <p class="text-muted">Daftar produk yang stoknya mencapai atau di bawah batas minimum</p>
-</div>
-
-<!-- Alert Summary -->
-<div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
-    <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
-    <div>
-        <h5 class="mb-1">Perhatian!</h5>
-        <p class="mb-0">
-            Terdapat <strong>{{ total_low_stock }}</strong> produk dengan stok rendah yang memerlukan perhatian segera.
-        </p>
-    </div>
-</div>
-
-<!-- Report Title (for print) -->
-<div class="text-center mb-3" style="display:none;">
-    <h3>LAPORAN LOW STOCK ALERT</h3>
-    <p>Tanggal: {% now "d F Y" %}</p>
-    <p class="text-danger">Total Produk Low Stock: {{ total_low_stock }}</p>
-</div>
-
-<!-- Low Stock Table -->
-<div class="card">
-    <div class="card-body">
-        {% if products %}
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered">
-                    <thead class="table-danger">
-                        <tr>
-                            <th width="10%">SKU</th>
-                            <th width="25%">Nama Produk</th>
-                            <th width="15%">Kategori</th>
-                            <th width="15%">Supplier</th>
-                            <th width="10%" class="text-center">Stok Saat Ini</th>
-                            <th width="10%" class="text-center">Min. Stok</th>
-                            <th width="10%" class="text-center">Selisih</th>
-                            <th width="5%" class="text-center no-print">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for product in products %}
-                        <tr>
-                            <td><code>{{ product.sku }}</code></td>
-                            <td>
-                                <strong>{{ product.name }}</strong>
-                            </td>
-                            <td>{{ product.category.name }}</td>
-                            <td>
-                                {{ product.supplier.name }}<br>
-                                <small class="text-muted">
-                                    <i class="bi bi-telephone"></i> {{ product.supplier.phone }}
-                                </small>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-danger fs-6">
-                                    {{ product.stock_quantity }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-secondary">
-                                    {{ product.minimum_stock }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-warning text-dark">
-                                    {{ product.minimum_stock|add:"-"|add:product.stock_quantity }}
-                                </span>
-                            </td>
-                            <td class="text-center no-print">
-                                <a href="{% url 'transaction_create' %}?product={{ product.pk }}" 
-                                   class="btn btn-sm btn-success" 
-                                   title="Stock IN">
-                                    <i class="bi bi-plus-circle"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                    Laporan Stok Rendah
+                </h1>
+                <p class="text-gray-600">Produk dengan stok di bawah batas minimum</p>
             </div>
-            
-            <div class="alert alert-info mt-3">
-                <i class="bi bi-info-circle"></i>
-                <strong>Rekomendasi:</strong> Segera lakukan pemesanan untuk produk-produk di atas agar tidak kehabisan stok.
-            </div>
-        {% else %}
-            <div class="text-center text-success py-5">
-                <i class="bi bi-check-circle fs-1 d-block mb-3"></i>
-                <h5>Semua Produk Aman!</h5>
-                <p class="mb-0">Tidak ada produk dengan stok rendah saat ini.</p>
-            </div>
-        {% endif %}
-        
-        <div class="text-center mt-3 no-print">
-            <button onclick="window.print()" class="btn btn-secondary">
-                <i class="bi bi-printer"></i> Print Laporan
-            </button>
-            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
-                <i class="bi bi-house"></i> Kembali ke Dashboard
+            <a href="{% url 'home' %}" 
+               class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
+                <i class="fas fa-arrow-left"></i>
+                <span>Kembali</span>
             </a>
         </div>
     </div>
+
+    <!-- Alert Summary -->
+    <div class="bg-red-50 border-l-4 border-red-600 p-6 mb-8 rounded-lg">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-circle text-red-600 text-3xl"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-semibold text-red-900 mb-1">
+                    Perhatian! {{ total_low_stock }} Produk Stok Rendah
+                </h3>
+                <p class="text-red-700">
+                    Segera lakukan restocking untuk produk-produk berikut agar tidak kehabisan stok.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if products %}
+    <!-- Products Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        {% for product in products %}
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border-l-4 {% if product.stock_quantity == 0 %}border-red-600{% else %}border-yellow-500{% endif %}">
+            <!-- Header -->
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                    <h3 class="font-bold text-lg text-gray-900 mb-1">
+                        {{ product.name }}
+                    </h3>
+                    <p class="text-sm text-gray-500">SKU: {{ product.sku }}</p>
+                </div>
+                {% if product.stock_quantity == 0 %}
+                <span class="bg-red-100 text-red-700 text-xs font-bold px-3 py-1.5 rounded-full">
+                    <i class="fas fa-ban mr-1"></i>HABIS
+                </span>
+                {% else %}
+                <span class="bg-yellow-100 text-yellow-700 text-xs font-bold px-3 py-1.5 rounded-full">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>RENDAH
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Info Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <p class="text-xs text-gray-500 mb-1">Kategori</p>
+                    <p class="font-semibold text-gray-900 text-sm">{{ product.category.name }}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <p class="text-xs text-gray-500 mb-1">Supplier</p>
+                    <p class="font-semibold text-gray-900 text-sm">{{ product.supplier.name }}</p>
+                </div>
+            </div>
+
+            <!-- Stock Comparison -->
+            <div class="border-t border-gray-200 pt-4 mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-gray-600">Stok Saat Ini</span>
+                    <span class="text-2xl font-bold {% if product.stock_quantity == 0 %}text-red-600{% else %}text-yellow-600{% endif %}">
+                        {{ product.stock_quantity }}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Stok Minimum</span>
+                    <span class="text-2xl font-bold text-gray-400">
+                        {{ product.minimum_stock }}
+                    </span>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="mt-3">
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="{% if product.stock_quantity == 0 %}bg-red-600{% else %}bg-yellow-500{% endif %} h-2.5 rounded-full" 
+                             style="width: {% widthratio product.stock_quantity product.minimum_stock 100 %}%">
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">
+                        {% widthratio product.stock_quantity product.minimum_stock 100 %}% dari minimum stock
+                    </p>
+                </div>
+            </div>
+
+            <!-- Restock Info -->
+            <div class="bg-blue-50 p-3 rounded-lg mb-4">
+                <p class="text-xs text-blue-700 mb-1">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Perlu Restock
+                </p>
+                <p class="text-lg font-bold text-blue-900">
+                    {{ product.minimum_stock|add:"-"|add:product.stock_quantity }} unit
+                </p>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex space-x-2">
+                <a href="{% url 'product_detail' product.pk %}" 
+                   class="flex-1 bg-primary-600 hover:bg-primary-700 text-white text-center font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+                    <i class="fas fa-eye mr-1"></i>Detail
+                </a>
+                <a href="/admin/core/stocktransaction/add/?product={{ product.pk }}" 
+                   target="_blank"
+                   class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+                    <i class="fas fa-plus mr-1"></i>Restock
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Export Options -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-download mr-2"></i>Export Laporan
+        </h3>
+        <div class="flex flex-wrap gap-3">
+            <button onclick="window.print()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
+                <i class="fas fa-print"></i>
+                <span>Cetak</span>
+            </button>
+            <button onclick="exportToCSV()" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
+                <i class="fas fa-file-csv"></i>
+                <span>Export CSV</span>
+            </button>
+            <a href="/admin/core/product/?stock_quantity__lte=minimum_stock" 
+               target="_blank"
+               class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
+                <i class="fas fa-cog"></i>
+                <span>Edit di Admin</span>
+            </a>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+        <i class="fas fa-check-circle text-green-500 text-6xl mb-4"></i>
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">
+            Semua Stok Aman!
+        </h3>
+        <p class="text-gray-600 mb-6">
+            Tidak ada produk dengan stok rendah saat ini. Terus pantau stok Anda secara berkala.
+        </p>
+        <a href="{% url 'home' %}" 
+           class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-8 rounded-lg transition-colors inline-block">
+            Lihat Semua Produk
+        </a>
+    </div>
+    {% endif %}
 </div>
 
+<script>
+function exportToCSV() {
+    const products = [
+        {% for product in products %}
+        {
+            name: "{{ product.name|escapejs }}",
+            sku: "{{ product.sku }}",
+            category: "{{ product.category.name|escapejs }}",
+            supplier: "{{ product.supplier.name|escapejs }}",
+            current_stock: {{ product.stock_quantity }},
+            minimum_stock: {{ product.minimum_stock }},
+            need_restock: {{ product.minimum_stock }} - {{ product.stock_quantity }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    let csv = 'Nama Produk,SKU,Kategori,Supplier,Stok Saat Ini,Stok Minimum,Perlu Restock
+';
+    products.forEach(p => {
+        csv += `"${p.name}","${p.sku}","${p.category}","${p.supplier}",${p.current_stock},${p.minimum_stock},${p.need_restock}
+`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `low_stock_report_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+}
+</script>
+
 <style>
-    @media print {
-        .text-center.mb-3 {
-            display: block !important;
-        }
-        .alert {
-            page-break-inside: avoid;
-        }
+@media print {
+    header, footer, .no-print {
+        display: none !important;
     }
+    body {
+        background: white !important;
+    }
+}
 </style>
 {% endblock %}

@@ -1,219 +1,167 @@
-<!-- templates/inventory/product_detail.html -->
 {% extends 'base.html' %}
-{% load humanize %}
 
-{% block title %}Detail Produk - {{ product.name }}{% endblock %}
-{% block page_title %}Detail Produk{% endblock %}
+{% block title %}{{ product.name }} - InventoryPro{% endblock %}
 
 {% block content %}
-<div class="mb-3">
-    <a href="{% url 'product_list' %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> Kembali ke Daftar
+<div class="container mx-auto px-4 py-8">
+    <!-- Back Button -->
+    <a href="{% url 'home' %}" class="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6">
+        <i class="fas fa-arrow-left"></i>
+        <span>Kembali ke Katalog</span>
     </a>
-</div>
 
-<div class="row g-3">
-    <!-- Product Info Card -->
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    <i class="bi bi-box-seam"></i> Informasi Produk
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="text-muted small">SKU</label>
-                        <h4><code>{{ product.sku }}</code></h4>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Product Info -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Main Card -->
+            <div class="bg-white rounded-xl shadow-sm p-8">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
+                        <p class="text-gray-600">SKU: {{ product.sku }}</p>
                     </div>
-                    <div class="col-md-6">
-                        <label class="text-muted small">Nama Produk</label>
-                        <h4>{{ product.name }}</h4>
-                    </div>
+                    {% if product.is_low_stock %}
+                    <span class="bg-red-100 text-red-700 text-sm font-medium px-4 py-2 rounded-full">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Stok Rendah
+                    </span>
+                    {% else %}
+                    <span class="bg-green-100 text-green-700 text-sm font-medium px-4 py-2 rounded-full">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Tersedia
+                    </span>
+                    {% endif %}
                 </div>
-                
-                <hr>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="text-muted small d-block">Kategori</label>
-                        <span class="badge bg-secondary fs-6">
-                            <i class="bi bi-tag"></i> {{ product.category.name }}
-                        </span>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted small d-block">Supplier</label>
-                        <span class="fs-6">
-                            <i class="bi bi-truck"></i> {{ product.supplier.name }}
-                        </span>
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label class="text-muted small">Harga Beli</label>
-                        <h5 class="text-success">
-                            Rp {{ product.purchase_price|floatformat:0|intcomma }}
-                        </h5>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="text-muted small">Harga Jual</label>
-                        <h5 class="text-primary">
-                            Rp {{ product.selling_price|floatformat:0|intcomma }}
-                        </h5>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="text-muted small">Margin Profit</label>
-                        <h5 class="text-info">
-                            {{ product.profit_margin|floatformat:1 }}%
-                        </h5>
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="text-muted small">Stok Saat Ini</label>
-                        <h3>
-                            {% if product.is_low_stock %}
-                                <span class="badge bg-danger fs-4">
-                                    {{ product.stock_quantity }} 
-                                    <i class="bi bi-exclamation-triangle"></i>
-                                </span>
-                            {% else %}
-                                <span class="badge bg-success fs-4">
-                                    {{ product.stock_quantity }}
-                                </span>
-                            {% endif %}
-                        </h3>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted small">Stok Minimum</label>
-                        <h3>
-                            <span class="badge bg-secondary fs-4">
-                                {{ product.minimum_stock }}
-                            </span>
-                        </h3>
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="text-muted small">Nilai Stok Total</label>
-                        <h5 class="text-success">
-                            Rp {{ product.stock_value|floatformat:0|intcomma }}
-                        </h5>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted small">Dibuat Pada</label>
-                        <p>{{ product.created_at|date:"d F Y, H:i" }}</p>
-                    </div>
-                </div>
-                
-                <div class="mt-3">
-                    <a href="{% url 'product_update' product.pk %}" class="btn btn-warning">
-                        <i class="bi bi-pencil"></i> Edit Produk
-                    </a>
-                    <a href="{% url 'product_delete' product.pk %}" class="btn btn-danger">
-                        <i class="bi bi-trash"></i> Hapus
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Quick Action Card -->
-    <div class="col-md-4">
-        <div class="card bg-light">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="bi bi-lightning"></i> Quick Action
-                </h6>
-            </div>
-            <div class="card-body">
-                <a href="{% url 'transaction_create' %}?product={{ product.pk }}" class="btn btn-success w-100 mb-2">
-                    <i class="bi bi-arrow-down-circle"></i> Stock IN
-                </a>
-                <a href="{% url 'transaction_create' %}?product={{ product.pk }}&type=OUT" class="btn btn-danger w-100">
-                    <i class="bi bi-arrow-up-circle"></i> Stock OUT
-                </a>
-            </div>
-        </div>
-        
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="bi bi-info-circle"></i> Informasi Supplier
-                </h6>
-            </div>
-            <div class="card-body">
-                <h6>{{ product.supplier.name }}</h6>
-                <p class="mb-1">
-                    <i class="bi bi-telephone"></i> {{ product.supplier.phone }}
-                </p>
-                <p class="mb-0 small text-muted">
-                    <i class="bi bi-geo-alt"></i> {{ product.supplier.address|truncatewords:10 }}
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Transaction History -->
-<div class="card mt-3">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="bi bi-clock-history"></i> History Transaksi (10 Terakhir)
-        </h5>
-    </div>
-    <div class="card-body">
-        {% if product.recent_transactions %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Tanggal & Waktu</th>
-                            <th class="text-center">Tipe</th>
-                            <th class="text-center">Jumlah</th>
-                            <th>User</th>
-                            <th>Catatan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for trans in product.recent_transactions %}
-                        <tr>
-                            <td>{{ trans.created_at|date:"d M Y, H:i" }}</td>
-                            <td class="text-center">
-                                <span class="badge bg-{% if trans.transaction_type == 'IN' %}success{% else %}danger{% endif %}">
-                                    {{ trans.get_transaction_type_display }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <strong>{{ trans.quantity }}</strong>
-                            </td>
-                            <td>
-                                <i class="bi bi-person-circle"></i> {{ trans.created_by.username }}
-                            </td>
-                            <td>
-                                <small>{{ trans.notes|default:"-" }}</small>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Kategori</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ product.category.name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Supplier</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ product.supplier.name }}</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Informasi Stok</h3>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500 mb-2">Stok Tersedia</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ product.stock_quantity }}</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500 mb-2">Stok Minimum</p>
+                            <p class="text-3xl font-bold text-gray-600">{{ product.minimum_stock }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        {% else %}
-            <div class="text-center text-muted py-4">
-                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                Belum ada transaksi untuk produk ini
+
+            <!-- Recent Transactions -->
+            <div class="bg-white rounded-xl shadow-sm p-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-history mr-2"></i>Riwayat Transaksi Terakhir
+                </h3>
+                {% if transactions %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipe</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Oleh</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for trans in transactions %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ trans.created_at|date:"d M Y H:i" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if trans.transaction_type == 'IN' %}
+                                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded">
+                                        <i class="fas fa-arrow-down mr-1"></i>Stock In
+                                    </span>
+                                    {% else %}
+                                    <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded">
+                                        <i class="fas fa-arrow-up mr-1"></i>Stock Out
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ trans.quantity }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ trans.created_by.username }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-center py-8">Belum ada transaksi</p>
+                {% endif %}
             </div>
-        {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Price Card -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Informasi Harga</h3>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Harga Beli</p>
+                        <p class="text-2xl font-bold text-gray-900">Rp {{ product.purchase_price|floatformat:0 }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Harga Jual</p>
+                        <p class="text-2xl font-bold text-primary-600">Rp {{ product.selling_price|floatformat:0 }}</p>
+                    </div>
+                    <div class="pt-4 border-t border-gray-200">
+                        <p class="text-sm text-gray-500 mb-1">Margin Keuntungan</p>
+                        <p class="text-2xl font-bold text-green-600">{{ product.profit_margin|floatformat:1 }}%</p>
+                    </div>
+                    <div class="pt-4 border-t border-gray-200">
+                        <p class="text-sm text-gray-500 mb-1">Total Nilai Stok</p>
+                        <p class="text-2xl font-bold text-gray-900">Rp {{ product.stock_value|floatformat:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Aksi</h3>
+                <div class="space-y-3">
+                    <a href="/admin/core/product/{{ product.pk }}/change/" 
+                       target="_blank"
+                       class="block w-full bg-primary-600 hover:bg-primary-700 text-white text-center font-medium py-3 px-4 rounded-lg transition-colors">
+                        <i class="fas fa-edit mr-2"></i>Edit Produk
+                    </a>
+                    <a href="/admin/core/stocktransaction/add/?product={{ product.pk }}" 
+                       target="_blank"
+                       class="block w-full bg-green-600 hover:bg-green-700 text-white text-center font-medium py-3 px-4 rounded-lg transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Tambah Transaksi
+                    </a>
+                </div>
+            </div>
+
+            <!-- Info -->
+            <div class="bg-blue-50 rounded-xl p-6">
+                <h4 class="text-sm font-semibold text-blue-900 mb-2">
+                    <i class="fas fa-info-circle mr-1"></i>Informasi
+                </h4>
+                <p class="text-xs text-blue-800">
+                    Dibuat: {{ product.created_at|date:"d M Y H:i" }}<br>
+                    Diupdate: {{ product.updated_at|date:"d M Y H:i" }}
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

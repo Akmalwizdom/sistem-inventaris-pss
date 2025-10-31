@@ -1,13 +1,16 @@
 # simplelms/settings.py
-
+import os
 from pathlib import Path
+from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-hgih-1m$=z9t%sz!&ul(4-db7%$q7tvm@=lo(bqw-=p05+btfy'
-DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+# Security
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key-change-this')
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -15,13 +18,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.humanize',
-    'core',
+    
+    # Third party
     'silk',
+    'widget_tweaks',
+    
+    # Local apps
+    'core',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -36,7 +44,7 @@ ROOT_URLCONF = 'simplelms.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'core' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -51,71 +59,58 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'simplelms.wsgi.application'
 
-# ✅ DEFAULT: SQLite Database
+# Database
+# simplelms/settings.py (Perubahan yang disarankan)
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+        'NAME': config('DATABASE_NAME', default='simple_lms'), # Ubah default name juga jika perlu
+        'USER': config('DATABASE_USER', default='simple_user'),  # Ambil dari DATABASE_USER
+        'PASSWORD': config('DATABASE_PASSWORD', default='simple_password'), # Ambil dari DATABASE_PASSWORD
+        'HOST': config('DATABASE_HOST', default='postgres'), # Pastikan host membaca DATABASE_HOST
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
 
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-LANGUAGE_CODE = 'id-id'
-TIME_ZONE = 'Asia/Jakarta'
+# Internationalization
+LANGUAGE_CODE = config('LANGUAGE_CODE', default='id-ID')
+TIME_ZONE = config('TIME_ZONE', default='Asia/Jakarta')
 USE_I18N = True
 USE_TZ = True
 
-# ✅ STATIC FILES (tanpa STATICFILES_DIRS)
+# Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'core' / 'static',
+]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ✅ MEDIA FILES
+# Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
+# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ✅ LOGIN/LOGOUT
-LOGIN_URL = '/login/'
+# Login URLs
+LOGIN_URL = '/admin/login/'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/login/'
 
-# ✅ MESSAGES
-from django.contrib.messages import constants as messages
-MESSAGE_TAGS = {
-    messages.DEBUG: 'secondary',
-    messages.INFO: 'info',
-    messages.SUCCESS: 'success',
-    messages.WARNING: 'warning',
-    messages.ERROR: 'danger',
-}
-
-# ✅ SILK CONFIG
-SILKY_PYTHON_PROFILER = True
-SILKY_AUTHENTICATION = True
-SILKY_AUTHORISATION = True
-
-# ✅ LOGGING (Console only)
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {'class': 'logging.StreamHandler'},
-    },
-    'loggers': {
-        'django': {'handlers': ['console'], 'level': 'INFO'},
-        'core': {'handlers': ['console'], 'level': 'DEBUG'},
-    },
-}
-
-# ✅ LOCAL SETTINGS (optional override)
-try:
-    from simplelms.local_settings import *
-except ImportError:
-    pass
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'

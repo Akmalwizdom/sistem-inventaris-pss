@@ -1,138 +1,76 @@
-<!-- templates/inventory/reports/stock_report.html -->
 {% extends 'base.html' %}
-{% load humanize %}
 
-{% block title %}Laporan Stok{% endblock %}
-{% block page_title %}Laporan Stok{% endblock %}
+{% block title %}Laporan Stok - InventoryPro{% endblock %}
 
 {% block content %}
-<div class="mb-3 no-print">
-    <h4>
-        <i class="bi bi-file-text"></i> Laporan Stok Produk
-    </h4>
-    <p class="text-muted">Laporan lengkap stok semua produk</p>
-</div>
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            <i class="fas fa-boxes mr-2"></i>Laporan Stok
+        </h1>
+        <p class="text-gray-600">Overview lengkap stok produk</p>
+    </div>
 
-<!-- Filter -->
-<div class="card mb-3 no-print">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label">Filter Kategori</label>
-                <select name="category" class="form-control">
-                    <option value="">Semua Kategori</option>
-                    {% for cat in categories %}
-                        <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>
-                            {{ cat.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-funnel"></i> Filter
-                </button>
-            </div>
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <p class="text-sm text-gray-500 mb-2">Total Item Produk</p>
+            <p class="text-4xl font-bold text-gray-900">{{ summary.total_items }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <p class="text-sm text-gray-500 mb-2">Total Nilai Stok</p>
+            <p class="text-4xl font-bold text-primary-600">Rp {{ summary.total_value|floatformat:0 }}</p>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+        <form method="GET" class="flex gap-4">
+            <select name="category" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg">
+                <option value="">Semua Kategori</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>
+                    {{ cat.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg">
+                Filter
+            </button>
         </form>
     </div>
-</div>
 
-<!-- Summary Cards -->
-<div class="row g-3 mb-3">
-    <div class="col-md-6">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h6 class="card-title">Total Item Produk</h6>
-                <h2 class="mb-0">{{ summary.total_items|default:0 }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h6 class="card-title">Total Nilai Stok</h6>
-                <h2 class="mb-0">Rp {{ summary.total_value|default:0|floatformat:0|intcomma }}</h2>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Report Title (for print) -->
-<div class="text-center mb-3" style="display:none;">
-    <h3>LAPORAN STOK PRODUK</h3>
-    <p>Tanggal: {% now "d F Y" %}</p>
-</div>
-
-<!-- Stock Table -->
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="table-dark">
+    <!-- Table -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
                     <tr>
-                        <th width="10%">SKU</th>
-                        <th width="25%">Nama Produk</th>
-                        <th width="15%">Kategori</th>
-                        <th width="15%">Supplier</th>
-                        <th width="10%" class="text-center">Stok</th>
-                        <th width="12%" class="text-end">Harga Beli</th>
-                        <th width="13%" class="text-end">Nilai Stok</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produk</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stok</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga Beli</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nilai Stok</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="bg-white divide-y divide-gray-200">
                     {% for product in products %}
-                    <tr>
-                        <td><code>{{ product.sku }}</code></td>
-                        <td>{{ product.name }}</td>
-                        <td>{{ product.category.name }}</td>
-                        <td>{{ product.supplier.name }}</td>
-                        <td class="text-center">
-                            {% if product.is_low_stock %}
-                                <span class="badge bg-danger">
-                                    {{ product.stock_quantity }} ⚠️
-                                </span>
-                            {% else %}
-                                <strong>{{ product.stock_quantity }}</strong>
-                            {% endif %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div>
+                                <div class="font-medium text-gray-900">{{ product.name }}</div>
+                                <div class="text-sm text-gray-500">{{ product.sku }}</div>
+                            </div>
                         </td>
-                        <td class="text-end">Rp {{ product.purchase_price|floatformat:0|intcomma }}</td>
-                        <td class="text-end">Rp {{ product.stock_value|floatformat:0|intcomma }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
-                            Tidak ada data produk
-                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">{{ product.category.name }}</td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ product.stock_quantity }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">Rp {{ product.purchase_price|floatformat:0 }}</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">Rp {{ product.stock_value|floatformat:0 }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
-                <tfoot class="table-light">
-                    <tr>
-                        <th colspan="6" class="text-end">TOTAL:</th>
-                        <th class="text-end">
-                            Rp {{ summary.total_value|default:0|floatformat:0|intcomma }}
-                        </th>
-                    </tr>
-                </tfoot>
             </table>
-        </div>
-        
-        <div class="text-center mt-3 no-print">
-            <button onclick="window.print()" class="btn btn-secondary">
-                <i class="bi bi-printer"></i> Print Laporan
-            </button>
-            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
-                <i class="bi bi-house"></i> Kembali ke Dashboard
-            </a>
         </div>
     </div>
 </div>
-
-<style>
-    @media print {
-        .text-center.mb-3 {
-            display: block !important;
-        }
-    }
-</style>
 {% endblock %}
