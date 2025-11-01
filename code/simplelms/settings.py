@@ -58,7 +58,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'simplelms.wsgi.application'
-
+SILKY_PYTHON_PROFILER = True
 # Database
 # simplelms/settings.py (Perubahan yang disarankan)
 
