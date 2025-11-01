@@ -19,7 +19,7 @@
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6">
             <p class="text-sm text-gray-500 mb-2">Total Nilai Stok</p>
-            <p class="text-4xl font-bold text-primary-600">Rp {{ summary.total_value|floatformat:0 }}</p>
+            <p class="text-4xl font-bold text-primary-600"><span class="currency">{{ summary.total_value }}</span></p>
         </div>
     </div>
 
@@ -64,8 +64,8 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-900">{{ product.category.name }}</td>
                         <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ product.stock_quantity }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-900">Rp {{ product.purchase_price|floatformat:0 }}</td>
-                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">Rp {{ product.stock_value|floatformat:0 }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900"><span class="currency">{{ product.purchase_price }}</span></td>
+                        <td class="px-6 py-4 text-sm font-semibold text-gray-900"><span class="currency">{{ product.stock_value }}</span></td>
                     </tr>
                     {% endfor %}
                 </tbody>

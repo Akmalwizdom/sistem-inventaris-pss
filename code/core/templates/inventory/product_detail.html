@@ -117,11 +117,11 @@
                 <div class="space-y-4">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Harga Beli</p>
-                        <p class="text-2xl font-bold text-gray-900">Rp {{ product.purchase_price|floatformat:0 }}</p>
+                        <p class="text-2xl font-bold text-gray-900"><span class="currency">{{ product.purchase_price }}</span></p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Harga Jual</p>
-                        <p class="text-2xl font-bold text-primary-600">Rp {{ product.selling_price|floatformat:0 }}</p>
+                        <p class="text-2xl font-bold text-primary-600"><span class="currency">{{ product.sell_price }}</span></p>
                     </div>
                     <div class="pt-4 border-t border-gray-200">
                         <p class="text-sm text-gray-500 mb-1">Margin Keuntungan</p>
@@ -129,7 +129,7 @@
                     </div>
                     <div class="pt-4 border-t border-gray-200">
                         <p class="text-sm text-gray-500 mb-1">Total Nilai Stok</p>
-                        <p class="text-2xl font-bold text-gray-900">Rp {{ product.stock_value|floatformat:0 }}</p>
+                        <p class="text-2xl font-bold text-gray-900"><span class="currency">{{ product.total_stock_value }}</span></p>
                     </div>
                 </div>
             </div>

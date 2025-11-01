@@ -4,6 +4,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('InventoryPro initialized');
     
+    document.querySelectorAll('.currency').forEach(el => {
+        const value = parseFloat(el.textContent.trim());
+        if (!isNaN(value)) {
+            el.textContent = formatCurrency(value);
+        }
+    });
     // Initialize tooltips
     initTooltips();
     
@@ -149,7 +155,8 @@ function formatCurrency(amount) {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-        minimumFractionDigits: 0
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
     }).format(amount);
 }
 
@@ -173,6 +180,72 @@ function copyToClipboard(text) {
 }
 
 // Export table to CSV
+// Enhanced CSV export function
+function exportToCSV(data, filename, headers = null) {
+    // Handle empty data
+    if (!data || data.length === 0) {
+        showToast('Tidak ada data untuk diekspor', 'warning');
+        return;
+    }
+    
+    let csv = '';
+    
+    // Add BOM for proper UTF-8 encoding in Excel
+    csv = '\uFEFF';
+    
+    // Add headers if provided
+    if (headers && headers.length > 0) {
+        csv += headers.map(header => escapeCSVField(header)).join(',') + '';
+    }
+    
+    // Add data rows
+    data.forEach(row => {
+        const values = Object.values(row);
+        csv += values.map(value => escapeCSVField(value)).join(',') + '';
+    });
+    
+    // Create and trigger download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    // Set filename with timestamp
+    const timestamp = new Date().toISOString().split('T')[0];
+    const finalFilename = filename.replace('{timestamp}', timestamp);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', finalFilename);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showToast('Laporan berhasil diekspor', 'success');
+}
+
+// Helper function to escape CSV fields
+function escapeCSVField(field) {
+    if (field === null || field === undefined) {
+        return '';
+    }
+    
+    // Convert to string
+    let value = String(field);
+    
+    // Replace line breaks and returns with spaces
+    value = value.replace(/[\r]/g, ' ');
+    
+    // If value contains comma, quote, or newline, wrap in quotes and escape quotes
+    if (value.includes(',') || value.includes('"') || value.includes('')) {
+        value = '"' + value.replace(/"/g, '""') + '"';
+    }
+    
+    return value;
+}
+
+// Export table to CSV (improved version)
 function exportTableToCSV(tableId, filename = 'export.csv') {
     const table = document.getElementById(tableId);
     if (!table) return;
@@ -186,20 +259,20 @@ function exportTableToCSV(tableId, filename = 'export.csv') {
         
         cols.forEach(col => {
             let data = col.textContent.trim();
-            data = data.replace(/"/g, '""'); // Escape quotes
+            data = data.replace(/"/g, '""'); // Escape double quotes
             rowData.push(`"${data}"`);
         });
         
         csv.push(rowData.join(','));
     });
     
-    downloadCSV(csv.join('
-'), filename);
+    downloadCSV(csv.join('\r'), filename); // Use \r
 }
 
 // Download CSV
 function downloadCSV(csv, filename) {
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const bom = '\uFEFF'; // UTF-8 BOM for Excel compatibility
+    const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     
     if (link.download !== undefined) {
