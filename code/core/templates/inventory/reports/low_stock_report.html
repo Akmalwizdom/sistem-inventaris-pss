@@ -14,8 +14,8 @@
                 </h1>
                 <p class="text-gray-600">Produk dengan stok di bawah batas minimum</p>
             </div>
-            <a href="{% url 'home' %}" 
-               class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
+            <a href="{% url 'home' %}"
+                class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
                 <i class="fas fa-arrow-left"></i>
                 <span>Kembali</span>
             </a>
@@ -43,7 +43,8 @@
     <!-- Products Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
         {% for product in products %}
-        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border-l-4 {% if product.stock_quantity == 0 %}border-red-600{% else %}border-yellow-500{% endif %}">
+        <div
+            class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border-l-4 {% if product.stock_quantity == 0 %}border-red-600{% else %}border-yellow-500{% endif %}">
             <!-- Header -->
             <div class="flex items-start justify-between mb-4">
                 <div class="flex-1">
@@ -79,7 +80,8 @@
             <div class="border-t border-gray-200 pt-4 mb-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-gray-600">Stok Saat Ini</span>
-                    <span class="text-2xl font-bold {% if product.stock_quantity == 0 %}text-red-600{% else %}text-yellow-600{% endif %}">
+                    <span
+                        class="text-2xl font-bold {% if product.stock_quantity == 0 %}text-red-600{% else %}text-yellow-600{% endif %}">
                         {{ product.stock_quantity }}
                     </span>
                 </div>
@@ -89,12 +91,12 @@
                         {{ product.minimum_stock }}
                     </span>
                 </div>
-                
+
                 <!-- Progress Bar -->
                 <div class="mt-3">
                     <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div class="{% if product.stock_quantity == 0 %}bg-red-600{% else %}bg-yellow-500{% endif %} h-2.5 rounded-full" 
-                             style="width: {% widthratio product.stock_quantity product.minimum_stock 100 %}%">
+                        <div class="{% if product.stock_quantity == 0 %}bg-red-600{% else %}bg-yellow-500{% endif %} h-2.5 rounded-full"
+                            style="width: {% widthratio product.stock_quantity product.minimum_stock 100 %}%">
                         </div>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">
@@ -116,13 +118,12 @@
 
             <!-- Actions -->
             <div class="flex space-x-2">
-                <a href="{% url 'product_detail' product.pk %}" 
-                   class="flex-1 bg-primary-600 hover:bg-primary-700 text-white text-center font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+                <a href="{% url 'product_detail' product.pk %}"
+                    class="flex-1 bg-primary-600 hover:bg-primary-700 text-white text-center font-medium py-2 px-4 rounded-lg transition-colors text-sm">
                     <i class="fas fa-eye mr-1"></i>Detail
                 </a>
-                <a href="/admin/core/stocktransaction/add/?product={{ product.pk }}" 
-                   target="_blank"
-                   class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+                <a href="/admin/core/stocktransaction/add/?product={{ product.pk }}" target="_blank"
+                    class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center font-medium py-2 px-4 rounded-lg transition-colors text-sm">
                     <i class="fas fa-plus mr-1"></i>Restock
                 </a>
             </div>
@@ -130,20 +131,59 @@
         {% endfor %}
     </div>
 
+    <!-- Pagination -->
+    {% if products.has_other_pages %}
+    <div class="mt-6 flex items-center justify-between">
+        <div>
+            <p class="text-sm text-gray-700">
+                Halaman <span class="font-medium">{{ products.number }}</span> dari
+                <span class="font-medium">{{ products.paginator.num_pages }}</span>
+            </p>
+        </div>
+        <div>
+            <nav class="inline-flex rounded-md shadow-sm">
+                {% if products.has_previous %}
+                <a href="?page=1"
+                    class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Pertama</a>
+                <a href="?page={{ products.previous_page_number }}"
+                    class="px-3 py-2 border-t border-b border-l border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Sebelumnya</a>
+                {% endif %}
+
+                {% for num in products.paginator.page_range %}
+                {% if products.number == num %}
+                <span
+                    class="px-3 py-2 border-t border-b border-gray-300 bg-primary-600 text-sm font-medium text-white">{{
+                    num }}</span>
+                {% elif num > products.number|add:'-2' and num < products.number|add:'2' %} <a href="?page={{ num }}"
+                    class="px-3 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    {{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}"
+                        class="px-3 py-2 border-t border-b border-r border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Berikutnya</a>
+                    <a href="?page={{ products.paginator.num_pages }}"
+                        class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Terakhir</a>
+                    {% endif %}
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Export Options -->
     <div class="bg-white rounded-xl shadow-sm p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
             <i class="fas fa-download mr-2"></i>Export Laporan
         </h3>
         <div class="flex flex-wrap gap-3">
-            <button onclick="window.print()" 
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
+            <button onclick="window.print()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
                 <i class="fas fa-print"></i>
                 <span>Cetak</span>
             </button>
-            <a href="/admin/core/product/?stock_quantity__lte=minimum_stock" 
-               target="_blank"
-               class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
+            <a href="/admin/core/product/?stock_quantity__lte=minimum_stock" target="_blank"
+                class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
                 <i class="fas fa-cog"></i>
                 <span>Edit di Admin</span>
             </a>
@@ -160,8 +200,8 @@
         <p class="text-gray-600 mb-6">
             Tidak ada produk dengan stok rendah saat ini. Terus pantau stok Anda secara berkala.
         </p>
-        <a href="{% url 'home' %}" 
-           class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-8 rounded-lg transition-colors inline-block">
+        <a href="{% url 'home' %}"
+            class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-8 rounded-lg transition-colors inline-block">
             Lihat Semua Produk
         </a>
     </div>

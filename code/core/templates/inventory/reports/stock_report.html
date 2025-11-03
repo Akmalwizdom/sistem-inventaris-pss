@@ -72,5 +72,56 @@
             </table>
         </div>
     </div>
+
+    <!-- Pagination -->
+{% if products.has_other_pages %}
+<div class="mt-6 flex items-center justify-between">
+    <div>
+        <p class="text-sm text-gray-700">
+            Menampilkan <span class="font-medium">{{ products.start_index }}</span> hingga 
+            <span class="font-medium">{{ products.end_index }}</span> dari 
+            <span class="font-medium">{{ products.paginator.count }}</span> produk
+        </p>
+    </div>
+    <div>
+        <nav class="inline-flex rounded-md shadow-sm" aria-label="Pagination">
+            {% if products.has_previous %}
+                <a href="?page=1{% if selected_category %}&category={{ selected_category }}{% endif %}" 
+                   class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Pertama
+                </a>
+                <a href="?page={{ products.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}" 
+                   class="px-3 py-2 border-t border-b border-l border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Sebelumnya
+                </a>
+            {% endif %}
+
+            {% for num in products.paginator.page_range %}
+                {% if products.number == num %}
+                    <span class="px-3 py-2 border-t border-b border-gray-300 bg-primary-600 text-sm font-medium text-white">
+                        {{ num }}
+                    </span>
+                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                    <a href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}" 
+                       class="px-3 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        {{ num }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}" 
+                   class="px-3 py-2 border-t border-b border-r border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Berikutnya
+                </a>
+                <a href="?page={{ products.paginator.num_pages }}{% if selected_category %}&category={{ selected_category }}{% endif %}" 
+                   class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Terakhir
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+</div>
+{% endif %}
 </div>
 {% endblock %}

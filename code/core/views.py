@@ -4,8 +4,9 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from django.db.models import Q, F, Sum, Count
 from django.utils import timezone
+from django.core.paginator import Paginator
 from .models import Product, Category, Supplier, StockTransaction
-from silk.profiling.profiler import silk_profile  # Tambahkan ini
+from silk.profiling.profiler import silk_profile 
 
 # ============= DASHBOARD (HOMEPAGE) =============
 @silk_profile(name='Homepage View')
@@ -103,34 +104,6 @@ def product_detail(request, pk):
 
     return render(request, 'inventory/product_detail.html', context)
 
-# ============= REPORTS =============
-@silk_profile(name='Stock Report View')
-def stock_report(request):
-    """Laporan stok"""
-    with silk_profile(name='Stock Report Data Fetching'):
-        products = Product.objects.select_related('category', 'supplier').all()
-
-        # Filter by category
-        category_id = request.GET.get('category', '')
-        if category_id:
-            products = products.filter(category_id=category_id)
-
-        # Calculate summary
-        summary = products.aggregate(
-            total_items=Count('id'),
-            total_value=Sum(F('stock_quantity') * F('purchase_price'))
-        )
-
-        categories = Category.objects.all()
-
-    context = {
-        'products': products,
-        'summary': summary,
-        'categories': categories,
-        'selected_category': category_id,
-    }
-
-    return render(request, 'inventory/reports/stock_report.html', context)
 
 @silk_profile(name='Low Stock Report View')
 def low_stock_report(request):
@@ -149,35 +122,90 @@ def low_stock_report(request):
 
     return render(request, 'inventory/reports/low_stock_report.html', context)
 
+# ============= REPORTS =============
+@silk_profile(name='Stock Report View')
+def stock_report(request):
+    category_id = request.GET.get('category')
+    products = Product.objects.select_related('category', 'supplier').all()
+    if category_id:
+        products = products.filter(category_id=category_id)
+
+    # Hitung summary dari queryset yang difilter
+    summary = products.aggregate(
+        total_items=Count('id'),
+        total_value=Sum(F('stock_quantity') * F('purchase_price'))
+    )
+    # Handle None
+    summary['total_items'] = summary['total_items'] or 0
+    summary['total_value'] = summary['total_value'] or 0
+
+    # Pagination
+    paginator = Paginator(products, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'inventory/reports/stock_report.html', {
+        'products': page_obj,
+        'summary': summary,
+        'categories': Category.objects.all(),
+        'selected_category': category_id,
+    })
+
 @silk_profile(name='Transaction Report View')
 def transaction_report(request):
-    """Laporan transaksi"""
-    with silk_profile(name='Transaction Report Data Fetching'):
-        transactions = StockTransaction.objects.select_related(
-            'product', 'product__category', 'created_by'
-        ).all()
+    transactions = StockTransaction.objects.select_related(
+        'product', 'product__category', 'created_by'
+    ).order_by('-created_at')  # Urutkan terbaru dulu
 
-        # Filter by date
-        start_date = request.GET.get('start_date', '')
-        end_date = request.GET.get('end_date', '')
+    # Filter tanggal
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
 
-        if start_date and end_date:
-            transactions = transactions.filter(
-                created_at__date__range=[start_date, end_date]
-            )
-
-        # Summary
-        summary = transactions.aggregate(
-            total_in=Sum('quantity', filter=Q(transaction_type='IN')),
-            total_out=Sum('quantity', filter=Q(transaction_type='OUT')),
-            total_transactions=Count('id')
+    if start_date and end_date:
+        transactions = transactions.filter(
+            created_at__date__range=[start_date, end_date]
         )
+    elif start_date:
+        transactions = transactions.filter(created_at__date__gte=start_date)
+    elif end_date:
+        transactions = transactions.filter(created_at__date__lte=end_date)
 
-    context = {
-        'transactions': transactions,
+    # Hitung summary dari queryset yang difilter
+    summary = transactions.aggregate(
+        total_in=Sum('quantity', filter=Q(transaction_type='IN')),
+        total_out=Sum('quantity', filter=Q(transaction_type='OUT')),
+        total_transactions=Count('id')
+    )
+    # Handle None
+    summary['total_in'] = summary['total_in'] or 0
+    summary['total_out'] = summary['total_out'] or 0
+    summary['total_transactions'] = summary['total_transactions'] or 0
+
+    # Pagination
+    paginator = Paginator(transactions, 20)  # 20 transaksi per halaman
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'inventory/reports/transaction_report.html', {
+        'transactions': page_obj,        # <-- Ini objek Page, bukan QuerySet!
         'summary': summary,
         'start_date': start_date,
         'end_date': end_date,
-    }
+    })
 
-    return render(request, 'inventory/reports/transaction_report.html', context)
+@silk_profile(name='Low Stock Report View')
+def low_stock_report(request):
+    products = Product.objects.select_related('category', 'supplier').filter(
+        stock_quantity__lte=F('minimum_stock')
+    ).order_by('stock_quantity')
+
+    total_low_stock = products.count()
+
+    paginator = Paginator(products, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'inventory/reports/low_stock_report.html', {
+        'products': page_obj,
+        'total_low_stock': total_low_stock,
+    })

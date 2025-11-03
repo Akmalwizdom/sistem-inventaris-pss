@@ -198,6 +198,45 @@
         </div>
     </div>
 
+        <!-- Pagination -->
+    {% if transactions.has_other_pages %}
+    <div class="mt-6 flex items-center justify-between">
+        <div>
+            <p class="text-sm text-gray-700">
+                Menampilkan transaksi <span class="font-medium">{{ transactions.start_index }}</span>–
+                <span class="font-medium">{{ transactions.end_index }}</span> dari 
+                <span class="font-medium">{{ transactions.paginator.count }}</span>
+            </p>
+        </div>
+        <div>
+            <nav class="inline-flex rounded-md shadow-sm">
+                {% if transactions.has_previous %}
+                    <a href="?page=1{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                    class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Pertama</a>
+                    <a href="?page={{ transactions.previous_page_number }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                    class="px-3 py-2 border-t border-b border-l border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Sebelumnya</a>
+                {% endif %}
+
+                {% for num in transactions.paginator.page_range %}
+                    {% if transactions.number == num %}
+                        <span class="px-3 py-2 border-t border-b border-gray-300 bg-primary-600 text-sm font-medium text-white">{{ num }}</span>
+                    {% elif num > transactions.number|add:'-2' and num < transactions.number|add:'2' %}
+                        <a href="?page={{ num }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                        class="px-3 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if transactions.has_next %}
+                    <a href="?page={{ transactions.next_page_number }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                    class="px-3 py-2 border-t border-b border-r border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Berikutnya</a>
+                    <a href="?page={{ transactions.paginator.num_pages }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                    class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Terakhir</a>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Export Options -->
     <div class="bg-white rounded-xl shadow-sm p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
