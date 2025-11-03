@@ -121,33 +121,58 @@ function initConfirmDialogs() {
 
 // Show toast notification
 function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type} fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 z-50 animate-slide-in-right`;
+    // Cek apakah sudah ada toast container
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'fixed top-4 right-4 z-50 space-y-2';
+        document.body.appendChild(toastContainer);
+    }
     
-    const icon = {
-        'success': '<i class="fas fa-check-circle text-green-500 mr-2"></i>',
-        'error': '<i class="fas fa-exclamation-circle text-red-500 mr-2"></i>',
-        'warning': '<i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>',
-        'info': '<i class="fas fa-info-circle text-blue-500 mr-2"></i>'
-    }[type] || '';
+    const toast = document.createElement('div');
+    const toastId = 'toast-' + Date.now();
+    toast.id = toastId;
+    
+    const typeClasses = {
+        'success': 'bg-green-500 text-white',
+        'error': 'bg-red-500 text-white',
+        'warning': 'bg-yellow-500 text-black',
+        'info': 'bg-blue-500 text-white'
+    };
+    
+    const icons = {
+        'success': '✓',
+        'error': '✕',
+        'warning': '⚠',
+        'info': 'ℹ'
+    };
+    
+    toast.className = `${typeClasses[type] || typeClasses.info} px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-slide-in transform transition-all duration-300`;
     
     toast.innerHTML = `
-        <div class="flex items-center">
-            ${icon}
-            <span class="text-gray-800">${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
+        <span class="font-bold">${icons[type] || icons.info}</span>
+        <span>${message}</span>
+        <button onclick="closeToast('${toastId}')" class="ml-2 font-bold hover:opacity-75">×</button>
     `;
     
-    document.body.appendChild(toast);
+    toastContainer.appendChild(toast);
     
+    // Auto-hide after 5 seconds
     setTimeout(() => {
-        toast.style.transition = 'opacity 0.3s ease-out';
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
+        closeToast(toastId);
     }, 5000);
+}
+
+function closeToast(toastId) {
+    const toast = document.getElementById(toastId);
+    if (toast) {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }
 }
 
 // Format currency (Indonesian Rupiah)
@@ -177,113 +202,6 @@ function copyToClipboard(text) {
         console.error('Failed to copy:', err);
         showToast('Failed to copy', 'error');
     });
-}
-
-// Export table to CSV
-// Enhanced CSV export function
-function exportToCSV(data, filename, headers = null) {
-    // Handle empty data
-    if (!data || data.length === 0) {
-        showToast('Tidak ada data untuk diekspor', 'warning');
-        return;
-    }
-    
-    let csv = '';
-    
-    // Add BOM for proper UTF-8 encoding in Excel
-    csv = '\uFEFF';
-    
-    // Add headers if provided
-    if (headers && headers.length > 0) {
-        csv += headers.map(header => escapeCSVField(header)).join(',') + '';
-    }
-    
-    // Add data rows
-    data.forEach(row => {
-        const values = Object.values(row);
-        csv += values.map(value => escapeCSVField(value)).join(',') + '';
-    });
-    
-    // Create and trigger download
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    
-    // Set filename with timestamp
-    const timestamp = new Date().toISOString().split('T')[0];
-    const finalFilename = filename.replace('{timestamp}', timestamp);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', finalFilename);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    showToast('Laporan berhasil diekspor', 'success');
-}
-
-// Helper function to escape CSV fields
-function escapeCSVField(field) {
-    if (field === null || field === undefined) {
-        return '';
-    }
-    
-    // Convert to string
-    let value = String(field);
-    
-    // Replace line breaks and returns with spaces
-    value = value.replace(/[\r]/g, ' ');
-    
-    // If value contains comma, quote, or newline, wrap in quotes and escape quotes
-    if (value.includes(',') || value.includes('"') || value.includes('')) {
-        value = '"' + value.replace(/"/g, '""') + '"';
-    }
-    
-    return value;
-}
-
-// Export table to CSV (improved version)
-function exportTableToCSV(tableId, filename = 'export.csv') {
-    const table = document.getElementById(tableId);
-    if (!table) return;
-    
-    const rows = table.querySelectorAll('tr');
-    const csv = [];
-    
-    rows.forEach(row => {
-        const cols = row.querySelectorAll('td, th');
-        const rowData = [];
-        
-        cols.forEach(col => {
-            let data = col.textContent.trim();
-            data = data.replace(/"/g, '""'); // Escape double quotes
-            rowData.push(`"${data}"`);
-        });
-        
-        csv.push(rowData.join(','));
-    });
-    
-    downloadCSV(csv.join('\r'), filename); // Use \r
-}
-
-// Download CSV
-function downloadCSV(csv, filename) {
-    const bom = '\uFEFF'; // UTF-8 BOM for Excel compatibility
-    const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    
-    if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
 }
 
 // Print page

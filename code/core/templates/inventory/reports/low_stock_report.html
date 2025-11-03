@@ -141,11 +141,6 @@
                 <i class="fas fa-print"></i>
                 <span>Cetak</span>
             </button>
-            <button onclick="exportToCSV()" 
-                    class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
-                <i class="fas fa-file-csv"></i>
-                <span>Export CSV</span>
-            </button>
             <a href="/admin/core/product/?stock_quantity__lte=minimum_stock" 
                target="_blank"
                class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
@@ -173,46 +168,4 @@
     {% endif %}
 </div>
 
-<script>
-function exportToCSV() {
-    const products = [
-        {% for product in products %}
-        {
-            name: "{{ product.name|escapejs }}",
-            sku: "{{ product.sku }}",
-            category: "{{ product.category.name|escapejs }}",
-            supplier: "{{ product.supplier.name|escapejs }}",
-            current_stock: {{ product.stock_quantity }},
-            minimum_stock: {{ product.minimum_stock }},
-            need_restock: {{ product.minimum_stock }} - {{ product.stock_quantity }}
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    ];
-    
-    let csv = 'Nama Produk,SKU,Kategori,Supplier,Stok Saat Ini,Stok Minimum,Perlu Restock
-';
-    products.forEach(p => {
-        csv += `"${p.name}","${p.sku}","${p.category}","${p.supplier}",${p.current_stock},${p.minimum_stock},${p.need_restock}
-`;
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `low_stock_report_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-}
-</script>
-
-<style>
-@media print {
-    header, footer, .no-print {
-        display: none !important;
-    }
-    body {
-        background: white !important;
-    }
-}
-</style>
 {% endblock %}
