@@ -6,9 +6,6 @@ from django import forms
 from django.db.models import Count
 from .models import Product, Category, Supplier, StockTransaction
 
-# ============================================================================
-# CUSTOM USER ADMIN
-# ============================================================================
 class CustomUserCreationForm(forms.ModelForm):
     """Form custom untuk membuat user baru dengan help text Indonesia"""
     password1 = forms.CharField(
@@ -118,24 +115,18 @@ admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 
 
-# ============================================================================
-# KONFIGURASI ADMIN SITE
-# ============================================================================
 admin.site.site_header = "InventoryPro Administration"
 admin.site.site_title = "InventoryPro Admin Portal"
 admin.site.index_title = "Selamat Datang di Dashboard InventoryPro"
 
 
-# ============================================================================
-# CATEGORY ADMIN
-# ============================================================================
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'product_count', 'created_at', 'updated_at')
     search_fields = ('name',)
     readonly_fields = ('created_at', 'updated_at')
     list_per_page = 25
-    view_on_site = False  # Nonaktifkan "Lihat di situs"
+    view_on_site = False  
     
     fieldsets = (
         ('Informasi Kategori', {
@@ -162,16 +153,13 @@ class CategoryAdmin(admin.ModelAdmin):
     product_count.short_description = 'Jumlah Produk'
 
 
-# ============================================================================
-# SUPPLIER ADMIN
-# ============================================================================
 @admin.register(Supplier)
 class SupplierAdmin(admin.ModelAdmin):
     list_display = ('name', 'phone', 'product_count', 'created_at', 'updated_at')
     search_fields = ('name', 'phone', 'address')
     readonly_fields = ('created_at', 'updated_at')
     list_per_page = 25
-    view_on_site = False  # Nonaktifkan "Lihat di situs"
+    view_on_site = False 
     
     fieldsets = (
         ('Informasi Supplier', {
@@ -198,9 +186,6 @@ class SupplierAdmin(admin.ModelAdmin):
     product_count.short_description = 'Jumlah Produk'
 
 
-# ============================================================================
-# PRODUCT ADMIN
-# ============================================================================
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
@@ -212,7 +197,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('sku', 'name', 'category__name', 'supplier__name')
     readonly_fields = ('created_at', 'updated_at', 'stock_value', 'profit_margin')
     list_per_page = 25
-    view_on_site = False  # Nonaktifkan "Lihat di situs"
+    view_on_site = False  
     
     fieldsets = (
         ('Informasi Dasar', {
@@ -251,9 +236,6 @@ class ProductAdmin(admin.ModelAdmin):
     profit_margin_display.admin_order_field = 'selling_price'
 
 
-# ============================================================================
-# STOCK TRANSACTION ADMIN
-# ============================================================================
 @admin.register(StockTransaction)
 class StockTransactionAdmin(admin.ModelAdmin):
     list_display = (
@@ -264,7 +246,7 @@ class StockTransactionAdmin(admin.ModelAdmin):
     search_fields = ('product__name', 'product__sku', 'notes', 'created_by__username')
     readonly_fields = ('created_at', 'created_by')
     list_per_page = 50
-    view_on_site = False  # Nonaktifkan "Lihat di situs"
+    view_on_site = False  
     
     fieldsets = (
         ('Informasi Transaksi', {
