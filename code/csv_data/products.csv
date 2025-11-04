@@ -1,0 +1,48 @@
+sku,name,category,supplier,purchase_price,selling_price,stock_quantity,minimum_stock
+ELK001,Smart TV Samsung 43 Inch,Elektronik,PT Elektronik Jaya,4500000,5800000,12,5
+ELK002,Kulkas 2 Pintu LG,Elektronik,PT Elektronik Jaya,3800000,4900000,7,3
+ELK003,Mesin Cuci Sharp 9kg,Elektronik,PT Elektronik Jaya,3200000,4200000,15,5
+ELK004,AC Daikin 1PK,Elektronik,PT Elektronik Jaya,3100000,4000000,20,8
+ELK005,Set Top Box DVB-T2,Elektronik,PT Elektronik Jaya,180000,250000,45,10
+HP001,Handphone Samsung A15,Handphone & Aksesoris,PT Elektronik Jaya,1900000,2300000,16,5
+HP002,Charger Fast Charging 25W,Handphone & Aksesoris,PT Elektronik Jaya,85000,120000,100,30
+HP003,Case HP Silicone iPhone,Handphone & Aksesoris,PT Elektronik Jaya,50000,80000,120,40
+HP004,Earphone Bluetooth TWS,Handphone & Aksesoris,PT Elektronik Jaya,180000,270000,60,20
+HP005,Powerbank Xiaomi 20000mAh,Handphone & Aksesoris,PT Elektronik Jaya,250000,350000,40,15
+FAS001,Kaos Polos Katun,Pakaian Pria,CV Dunia Fasion,35000,60000,150,30
+FAS002,Kemeja Denim Pria,Pakaian Pria,CV Dunia Fasion,90000,150000,35,10
+FAS003,Celana Jeans Slim Fit,Pakaian Pria,CV Dunia Fasion,110000,180000,25,10
+FAS004,Gaun Panjang Satin,Pakaian Wanita,CV Dunia Fasion,200000,320000,12,5
+FAS005,Cardigan Rajut Wanita,Pakaian Wanita,CV Dunia Fasion,120000,200000,30,8
+FAS006,Syal Fashion Warna-Warni,Aksesoris,CV Dunia Fasion,25000,45000,80,20
+FAS007,Topi Baseball Unisex,Aksesoris,CV Dunia Fasion,35000,60000,60,15
+OLG001,Bola Futsal Mikasa,Olahraga,PT Sumber Olahraga Mandiri,130000,180000,20,5
+OLG002,Matras Yoga Premium,Olahraga,PT Sumber Olahraga Mandiri,150000,220000,40,10
+OLG003,Sarung Tangan Gym,Olahraga,PT Sumber Olahraga Mandiri,45000,80000,90,20
+OLG004,Raket Badminton Yonex,Olahraga,PT Sumber Olahraga Mandiri,250000,350000,30,10
+OLG005,Sepatu Lari Nike,Olahraga,PT Sumber Olahraga Mandiri,800000,1100000,15,5
+DPR001,Panci Stainless 24cm,Peralatan Dapur,Toko Grosir Sentosa,130000,180000,25,5
+DPR002,Wajan Teflon 28cm,Peralatan Dapur,Toko Grosir Sentosa,90000,135000,30,10
+DPR003,Sendok Garpu Set Isi 12,Peralatan Dapur,Toko Grosir Sentosa,35000,60000,80,20
+DPR004,Blender Philips,Peralatan Dapur,Toko Grosir Sentosa,375000,480000,10,4
+DPR005,Rice Cooker Miyako,Peralatan Dapur,Toko Grosir Sentosa,290000,375000,15,5
+MKM001,Kopi Arabica Premium 1kg,Makanan & Minuman,UD Sumber Rezeki,90000,120000,40,10
+MKM002,Teh Hijau Box 50,Makanan & Minuman,UD Sumber Rezeki,42000,60000,65,20
+MKM003,Mie Instan Dus Isi 40,Makanan & Minuman,UD Sumber Rezeki,95000,130000,35,10
+MKM004,Biskuit Marie Regal 600gr,Makanan & Minuman,UD Sumber Rezeki,45000,70000,50,15
+MKM005,Susu Ultra UHT 1L (6pcs),Makanan & Minuman,UD Sumber Rezeki,75000,100000,25,10
+KES001,Masker Medis Box 50,Kesehatan,PT Kesehatan Prima,45000,65000,100,30
+KES002,Vitamin C 1000mg 60 tabs,Kesehatan,PT Kesehatan Prima,80000,120000,55,20
+KES003,Hand Sanitizer 500ml,Kesehatan,PT Kesehatan Prima,25000,40000,150,50
+KES004,Tensi Digital Omron,Kesehatan,PT Kesehatan Prima,350000,460000,8,3
+KES005,Obat Batuk Anak Syrup,Kesehatan,PT Kesehatan Prima,18000,30000,100,30
+RHT001,Sapu Ijuk Panjang,Peralatan Rumah Tangga,Toko Grosir Sentosa,20000,35000,80,25
+RHT002,Pel Mikrofiber + Ember,Peralatan Rumah Tangga,Toko Grosir Sentosa,40000,65000,40,10
+RHT003,Tempat Sampah 30L,Peralatan Rumah Tangga,Toko Grosir Sentosa,70000,100000,25,8
+RHT004,Ember Plastik 20L,Peralatan Rumah Tangga,Toko Grosir Sentosa,18000,30000,100,30
+RHT005,Spons Cuci Piring Isi 5,Peralatan Rumah Tangga,Toko Grosir Sentosa,12000,20000,120,40
+OFF001,Pensil 2B Box 12,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,15000,25000,200,60
+OFF002,Spidol Whiteboard Hitam,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,10000,15000,300,100
+OFF003,Kertas A4 80gsm Rim,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,42000,60000,250,80
+OFF004,Buku Tulis 100 Lembar,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,7000,12000,450,150
+OFF005,Lem Kertas Cair,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,8000,13000,350,120

@@ -46,14 +46,14 @@ class SupplierAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        'sku', 'name', 'category', 'supplier', 
-        'stock_quantity', 'stock_status', 'purchase_price', 
+        'sku', 'name', 'category', 'supplier',
+        'stock_quantity', 'stock_status', 'purchase_price',
         'selling_price', 'created_at'
     )
     list_filter = ('category', 'supplier', 'created_at')
     search_fields = ('sku', 'name')
     readonly_fields = ('created_at', 'updated_at', 'stock_value', 'profit_margin')
-    
+
     fieldsets = (
         ('Informasi Dasar', {
             'fields': ('sku', 'name', 'category', 'supplier')
@@ -69,19 +69,12 @@ class ProductAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
-    
-    def get_queryset(self, request):
-        # OPTIMASI: select_related untuk foreign keys
-        queryset = super().get_queryset(request)
-        queryset = queryset.select_related('category', 'supplier')
-        return queryset
-    
+
     def stock_status(self, obj):
         if obj.is_low_stock:
             return '🔴 Low Stock'
         return '✅ OK'
     stock_status.short_description = 'Status Stok'
-
 
 @admin.register(StockTransaction)
 class StockTransactionAdmin(admin.ModelAdmin):

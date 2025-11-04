@@ -65,15 +65,19 @@ class Product(models.Model):
     
     purchase_price = models.DecimalField(
         "Harga Beli",
-        max_digits=10, 
+        max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))]
+        validators=[MinValueValidator(Decimal('0.01'))],
+        null=False,  # Tidak boleh NULL
+        blank=False  # Tidak boleh kosong di form
     )
     selling_price = models.DecimalField(
         "Harga Jual",
-        max_digits=10, 
+        max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))]
+        validators=[MinValueValidator(Decimal('0.01'))],
+        null=False,  # Tidak boleh NULL
+        blank=False  # Tidak boleh kosong di form
     )
     
     stock_quantity = models.IntegerField(
@@ -114,14 +118,17 @@ class Product(models.Model):
     @property
     def stock_value(self):
         """Hitung nilai total stok"""
-        return self.stock_quantity * self.purchase_price
+        # Pastikan purchase_price tidak None sebelum melakukan perkalian
+        if self.purchase_price is not None and self.purchase_price > 0:
+            return self.stock_quantity * self.purchase_price
+        return Decimal('0.00')  # Kembalikan 0 jika tidak valid
     
     @property
     def profit_margin(self):
         """Hitung margin keuntungan dalam persen"""
-        if self.purchase_price > 0:
-            return ((self.selling_price - self.purchase_price) / 
-                   self.purchase_price * 100)
+        if self.purchase_price is not None and self.purchase_price > 0:
+            return ((self.selling_price - self.purchase_price) /
+                    self.purchase_price) * 100
         return 0
 
 
