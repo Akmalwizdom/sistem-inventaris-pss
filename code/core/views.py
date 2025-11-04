@@ -58,13 +58,14 @@ def home(request):
     products = products.order_by('name')
 
     # Get categories and suppliers for filters
+    # PERBAIKAN: Gunakan alias _product_count untuk menghindari konflik dengan property
     with silk_profile(name='Homepage Category & Supplier Data'):
         categories = Category.objects.annotate(
-            product_count=Count('products')
+            product_count=Count('products', distinct=True)
         ).order_by('name')
 
         suppliers = Supplier.objects.annotate(
-            product_count=Count('products')
+            product_count=Count('products', distinct=True)
         ).order_by('name')
 
     context = {
@@ -79,6 +80,7 @@ def home(request):
     }
 
     return render(request, 'inventory/home.html', context)
+
 
 # ============= PRODUCT DETAIL =============
 @silk_profile(name='Product Detail View')
@@ -105,28 +107,13 @@ def product_detail(request, pk):
     return render(request, 'inventory/product_detail.html', context)
 
 
-@silk_profile(name='Low Stock Report View')
-def low_stock_report(request):
-    """Laporan produk stok rendah"""
-    with silk_profile(name='Low Stock Report Data Fetching'):
-        products = Product.objects.select_related(
-            'category', 'supplier'
-        ).filter(
-            stock_quantity__lte=F('minimum_stock')
-        ).order_by('stock_quantity')
-
-    context = {
-        'products': products,
-        'total_low_stock': products.count(),
-    }
-
-    return render(request, 'inventory/reports/low_stock_report.html', context)
-
 # ============= REPORTS =============
 @silk_profile(name='Stock Report View')
 def stock_report(request):
+    """Laporan stok produk"""
     category_id = request.GET.get('category')
     products = Product.objects.select_related('category', 'supplier').all()
+    
     if category_id:
         products = products.filter(category_id=category_id)
 
@@ -144,18 +131,25 @@ def stock_report(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # PERBAIKAN: Tambahkan annotate untuk categories
+    categories = Category.objects.annotate(
+        product_count=Count('products', distinct=True)
+    ).order_by('name')
+
     return render(request, 'inventory/reports/stock_report.html', {
         'products': page_obj,
         'summary': summary,
-        'categories': Category.objects.all(),
+        'categories': categories,
         'selected_category': category_id,
     })
 
+
 @silk_profile(name='Transaction Report View')
 def transaction_report(request):
+    """Laporan transaksi stok"""
     transactions = StockTransaction.objects.select_related(
         'product', 'product__category', 'created_by'
-    ).order_by('-created_at')  # Urutkan terbaru dulu
+    ).order_by('-created_at')
 
     # Filter tanggal
     start_date = request.GET.get('start_date', '')
@@ -182,25 +176,28 @@ def transaction_report(request):
     summary['total_transactions'] = summary['total_transactions'] or 0
 
     # Pagination
-    paginator = Paginator(transactions, 20)  # 20 transaksi per halaman
+    paginator = Paginator(transactions, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'inventory/reports/transaction_report.html', {
-        'transactions': page_obj,        # <-- Ini objek Page, bukan QuerySet!
+        'transactions': page_obj,
         'summary': summary,
         'start_date': start_date,
         'end_date': end_date,
     })
 
+
 @silk_profile(name='Low Stock Report View')
 def low_stock_report(request):
+    """Laporan produk stok rendah"""
     products = Product.objects.select_related('category', 'supplier').filter(
         stock_quantity__lte=F('minimum_stock')
     ).order_by('stock_quantity')
 
     total_low_stock = products.count()
 
+    # Pagination
     paginator = Paginator(products, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

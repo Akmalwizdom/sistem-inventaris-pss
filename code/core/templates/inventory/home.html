@@ -36,7 +36,7 @@
                     Temukan dan kelola produk dalam sistem inventaris Anda
                 </p>
             </div>
-            <a href="/admin/core/product/add/" 
+            <a href="/admin/core/product/add/"
                target="_blank"
                class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center space-x-2">
                 <i class="fas fa-plus"></i>
@@ -50,14 +50,14 @@
                 <div class="flex gap-3">
                     <div class="flex-1 relative">
                         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" 
-                               name="search" 
+                        <input type="text"
+                               name="search"
                                value="{{ search }}"
                                placeholder="Cari produk berdasarkan nama atau SKU..."
                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
                     </div>
-                    
-                    <button type="button" 
+
+                    <button type="button"
                             @click="showFilter = !showFilter"
                             class="bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-lg border border-gray-300 transition-colors duration-200 flex items-center space-x-2">
                         <i class="fas fa-filter"></i>
@@ -71,7 +71,7 @@
                 </div>
 
                 <!-- Filter Panel -->
-                <div x-show="showFilter" 
+                <div x-show="showFilter"
                      x-cloak
                      x-transition
                      class="bg-white rounded-lg shadow-sm p-6 space-y-4">
@@ -80,7 +80,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <i class="fas fa-tag mr-1"></i>Kategori
                             </label>
-                            <select name="category" 
+                            <select name="category"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none">
                                 <option value="">Semua Kategori</option>
                                 {% for cat in categories %}
@@ -119,7 +119,7 @@
                     </div>
 
                     <div class="flex justify-end space-x-2">
-                        <a href="{% url 'home' %}" 
+                        <a href="{% url 'home' %}"
                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors">
                             Reset
                         </a>
@@ -151,7 +151,7 @@
                         <p class="text-sm text-gray-500">SKU: {{ product.sku }}</p>
                     </div>
                 </div>
-                
+
                 <!-- Stock Status Badge -->
                 {% if product.is_low_stock %}
                 <span class="flex items-center space-x-1 bg-red-100 text-red-700 text-xs font-medium px-2.5 py-1 rounded-full">
@@ -185,7 +185,7 @@
                         <p class="text-xs text-gray-500 mb-1">Stok Tersedia</p>
                         <p class="text-2xl font-bold text-gray-900">{{ product.stock_quantity }}</p>
                     </div>
-                    <div>
+                    <div class="text-right"> {# Tambahkan class text-right di sini #}
                         <p class="text-xs text-gray-500 mb-1">Stok Minimum</p>
                         <p class="text-2xl font-bold text-gray-500">{{ product.minimum_stock }}</p>
                     </div>
@@ -210,7 +210,7 @@
 
             <!-- Action Button -->
             <div class="mt-4 pt-4 border-t border-gray-200">
-                <a href="{% url 'product_detail' product.pk %}" 
+                <a href="{% url 'product_detail' product.pk %}"
                    class="block w-full text-center bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg border border-gray-300 transition-colors text-sm">
                     Lihat Detail
                 </a>

@@ -9,7 +9,7 @@ class Category(models.Model):
     name = models.CharField("Nama Kategori", max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         verbose_name = "Kategori"
         verbose_name_plural = "Kategori"
@@ -17,12 +17,18 @@ class Category(models.Model):
         indexes = [
             models.Index(fields=['name']),
         ]
-    
+
     def __str__(self):
         return self.name
-    
-    def get_absolute_url(self):
-        return reverse('category_list')
+
+    # PERBAIKAN: Hapus get_absolute_url untuk nonaktifkan "View on site"
+    # def get_absolute_url(self):
+    #     return reverse('category_list')
+
+    # PERBAIKAN: Ubah dari @property menjadi method
+    def get_product_count(self):
+        """Menghitung jumlah produk dalam kategori"""
+        return self.products.count()
 
 
 class Supplier(models.Model):
@@ -31,7 +37,7 @@ class Supplier(models.Model):
     address = models.TextField("Alamat")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         verbose_name = "Supplier"
         verbose_name_plural = "Supplier"
@@ -39,12 +45,18 @@ class Supplier(models.Model):
         indexes = [
             models.Index(fields=['name']),
         ]
-    
+
     def __str__(self):
         return self.name
-    
-    def get_absolute_url(self):
-        return reverse('supplier_list')
+
+    # PERBAIKAN: Hapus get_absolute_url untuk nonaktifkan "View on site"
+    # def get_absolute_url(self):
+    #     return reverse('supplier_list')
+
+    # PERBAIKAN: Ubah dari @property menjadi method
+    def get_product_count(self):
+        """Menghitung jumlah produk dari supplier"""
+        return self.products.count()
 
 
 class Product(models.Model):
@@ -68,16 +80,16 @@ class Product(models.Model):
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0.01'))],
-        null=False,  # Tidak boleh NULL
-        blank=False  # Tidak boleh kosong di form
+        null=False,
+        blank=False
     )
     selling_price = models.DecimalField(
         "Harga Jual",
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0.01'))],
-        null=False,  # Tidak boleh NULL
-        blank=False  # Tidak boleh kosong di form
+        null=False,
+        blank=False
     )
     
     stock_quantity = models.IntegerField(
@@ -107,6 +119,7 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.sku} - {self.name}"
     
+    # PERBAIKAN: Hapus get_absolute_url karena sudah ada di URL
     def get_absolute_url(self):
         return reverse('product_detail', kwargs={'pk': self.pk})
     
@@ -118,10 +131,9 @@ class Product(models.Model):
     @property
     def stock_value(self):
         """Hitung nilai total stok"""
-        # Pastikan purchase_price tidak None sebelum melakukan perkalian
         if self.purchase_price is not None and self.purchase_price > 0:
             return self.stock_quantity * self.purchase_price
-        return Decimal('0.00')  # Kembalikan 0 jika tidak valid
+        return Decimal('0.00')
     
     @property
     def profit_margin(self):
@@ -176,5 +188,3 @@ class StockTransaction(models.Model):
     def __str__(self):
         return f"{self.get_transaction_type_display()} - {self.product.name} ({self.quantity})"
     
-    def get_absolute_url(self):
-        return reverse('transaction_list')
