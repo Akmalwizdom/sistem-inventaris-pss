@@ -23,6 +23,7 @@
     </div>
 
     <!-- Alert Summary -->
+    {% if total_low_stock > 0 %}
     <div class="bg-red-50 border-l-4 border-red-600 p-6 mb-8 rounded-lg">
         <div class="flex items-center">
             <div class="flex-shrink-0">
@@ -38,13 +39,13 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     {% if products %}
     <!-- Products Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
         {% for product in products %}
-        <div
-            class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border-l-4 {% if product.stock_quantity == 0 %}border-red-600{% else %}border-yellow-500{% endif %}">
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border-l-4 {% if product.stock_quantity == 0 %}border-red-600{% else %}border-yellow-500{% endif %}">
             <!-- Header -->
             <div class="flex items-start justify-between mb-4">
                 <div class="flex-1">
@@ -80,8 +81,7 @@
             <div class="border-t border-gray-200 pt-4 mb-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-gray-600">Stok Saat Ini</span>
-                    <span
-                        class="text-2xl font-bold {% if product.stock_quantity == 0 %}text-red-600{% else %}text-yellow-600{% endif %}">
+                    <span class="text-2xl font-bold {% if product.stock_quantity == 0 %}text-red-600{% else %}text-yellow-600{% endif %}">
                         {{ product.stock_quantity }}
                     </span>
                 </div>
@@ -94,14 +94,17 @@
 
                 <!-- Progress Bar -->
                 <div class="mt-3">
+                    {% if product.minimum_stock > 0 %}
                     <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        {% widthratio product.stock_quantity product.minimum_stock 100 as progress_pct %}
                         <div class="{% if product.stock_quantity == 0 %}bg-red-600{% else %}bg-yellow-500{% endif %} h-2.5 rounded-full"
-                            style="width: {% widthratio product.stock_quantity product.minimum_stock 100 %}%">
+                            style="width: {{ progress_pct }}%">
                         </div>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">
-                        {% widthratio product.stock_quantity product.minimum_stock 100 %}% dari minimum stock
+                        {{ progress_pct }}% dari minimum stock
                     </p>
+                    {% endif %}
                 </div>
             </div>
 
@@ -112,7 +115,9 @@
                     Perlu Restock
                 </p>
                 <p class="text-lg font-bold text-blue-900">
-                    {{ product.minimum_stock|add:"-"|add:product.stock_quantity }} unit
+                    {% widthratio product.minimum_stock 1 1 as min_stock %}
+                    {% widthratio product.stock_quantity 1 1 as curr_stock %}
+                    {{ min_stock|add:curr_stock|mul:-1|add:min_stock }} unit
                 </p>
             </div>
 
@@ -133,7 +138,7 @@
 
     <!-- Pagination -->
     {% if products.has_other_pages %}
-    <div class="mt-6 flex items-center justify-between">
+    <div class="mt-6 flex items-center justify-between bg-white rounded-xl shadow-sm p-6">
         <div>
             <p class="text-sm text-gray-700">
                 Halaman <span class="font-medium">{{ products.number }}</span> dari
@@ -144,35 +149,45 @@
             <nav class="inline-flex rounded-md shadow-sm">
                 {% if products.has_previous %}
                 <a href="?page=1"
-                    class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Pertama</a>
+                    class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <i class="fas fa-angle-double-left"></i> Pertama
+                </a>
                 <a href="?page={{ products.previous_page_number }}"
-                    class="px-3 py-2 border-t border-b border-l border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Sebelumnya</a>
+                    class="px-3 py-2 border-t border-b border-l border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <i class="fas fa-angle-left"></i> Sebelumnya
+                </a>
                 {% endif %}
 
                 {% for num in products.paginator.page_range %}
                 {% if products.number == num %}
-                <span
-                    class="px-3 py-2 border-t border-b border-gray-300 bg-primary-600 text-sm font-medium text-white">{{
-                    num }}</span>
-                {% elif num > products.number|add:'-2' and num < products.number|add:'2' %} <a href="?page={{ num }}"
+                <span class="px-3 py-2 border-t border-b border-gray-300 bg-primary-600 text-sm font-medium text-white">
+                    {{ num }}
+                </span>
+                {% elif num > products.number|add:'-2' and num < products.number|add:'2' %}
+                <a href="?page={{ num }}"
                     class="px-3 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    {{ num }}</a>
-                    {% endif %}
-                    {% endfor %}
+                    {{ num }}
+                </a>
+                {% endif %}
+                {% endfor %}
 
-                    {% if products.has_next %}
-                    <a href="?page={{ products.next_page_number }}"
-                        class="px-3 py-2 border-t border-b border-r border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Berikutnya</a>
-                    <a href="?page={{ products.paginator.num_pages }}"
-                        class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Terakhir</a>
-                    {% endif %}
+                {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}"
+                    class="px-3 py-2 border-t border-b border-r border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Berikutnya <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ products.paginator.num_pages }}"
+                    class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Terakhir <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% endif %}
             </nav>
         </div>
     </div>
     {% endif %}
 
     <!-- Export Options -->
-    <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="bg-white rounded-xl shadow-sm p-6 mt-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
             <i class="fas fa-download mr-2"></i>Export Laporan
         </h3>
@@ -182,7 +197,7 @@
                 <i class="fas fa-print"></i>
                 <span>Cetak</span>
             </button>
-            <a href="/admin/core/product/?stock_quantity__lte=minimum_stock" target="_blank"
+            <a href="/admin/core/product/?stock_quantity__lte=F('minimum_stock')" target="_blank"
                 class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
                 <i class="fas fa-cog"></i>
                 <span>Edit di Admin</span>

@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Custom JavaScript -->
-    <script src="{% static 'js/main.js' %}" defer></script>
     <!-- Alpine.js for interactivity -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
@@ -94,7 +92,6 @@
                 <button class="md:hidden" x-data @click="$dispatch('toggle-mobile-menu')">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
-
             </div>
         </div>
     </header>
@@ -145,5 +142,8 @@
             </div>
         </div>
     </footer>
+
+    <!-- Custom JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

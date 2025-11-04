@@ -4,7 +4,9 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django import forms
 from django.db.models import Count
+from django.utils.html import format_html
 from .models import Product, Category, Supplier, StockTransaction
+
 
 class CustomUserCreationForm(forms.ModelForm):
     """Form custom untuk membuat user baru dengan help text Indonesia"""
@@ -115,6 +117,7 @@ admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 
 
+# Kustomisasi Admin Site
 admin.site.site_header = "InventoryPro Administration"
 admin.site.site_title = "InventoryPro Admin Portal"
 admin.site.index_title = "Selamat Datang di Dashboard InventoryPro"
@@ -126,7 +129,6 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     readonly_fields = ('created_at', 'updated_at')
     list_per_page = 25
-    view_on_site = False  
     
     fieldsets = (
         ('Informasi Kategori', {
@@ -159,7 +161,6 @@ class SupplierAdmin(admin.ModelAdmin):
     search_fields = ('name', 'phone', 'address')
     readonly_fields = ('created_at', 'updated_at')
     list_per_page = 25
-    view_on_site = False 
     
     fieldsets = (
         ('Informasi Supplier', {
@@ -191,13 +192,18 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = (
         'sku', 'name', 'category', 'supplier',
         'stock_quantity', 'stock_status', 'purchase_price',
-        'selling_price', 'profit_margin_display', 'created_at'
+        'selling_price', 'get_profit_margin_display', 'created_at'
     )
     list_filter = ('category', 'supplier', 'created_at')
     search_fields = ('sku', 'name', 'category__name', 'supplier__name')
-    readonly_fields = ('created_at', 'updated_at', 'stock_value', 'profit_margin')
+    readonly_fields = (
+        'created_at', 
+        'updated_at', 
+        'get_stock_value', 
+        'get_profit_margin',
+        'get_is_low_stock'
+    )
     list_per_page = 25
-    view_on_site = False  
     
     fieldsets = (
         ('Informasi Dasar', {
@@ -205,11 +211,11 @@ class ProductAdmin(admin.ModelAdmin):
             'description': 'Informasi identitas produk'
         }),
         ('Informasi Harga', {
-            'fields': ('purchase_price', 'selling_price', 'profit_margin'),
+            'fields': ('purchase_price', 'selling_price', 'get_profit_margin'),
             'description': 'Informasi harga dan margin keuntungan'
         }),
         ('Manajemen Stok', {
-            'fields': ('stock_quantity', 'minimum_stock', 'stock_value'),
+            'fields': ('stock_quantity', 'minimum_stock', 'get_stock_value', 'get_is_low_stock'),
             'description': 'Informasi persediaan barang'
         }),
         ('Informasi Waktu', {
@@ -225,15 +231,79 @@ class ProductAdmin(admin.ModelAdmin):
         return queryset
 
     def stock_status(self, obj):
-        if obj.is_low_stock:
-            return '🔴 Stok Rendah'
-        return '✅ Stok Aman'
+        """Menampilkan status stok produk"""
+        is_low = obj.stock_quantity <= obj.minimum_stock
+        
+        if is_low:
+            return format_html(
+                '<span style="color: #dc2626; font-weight: bold;">🔴 Stok Rendah</span>'
+            )
+        return format_html(
+            '<span style="color: #16a34a; font-weight: bold;">✅ Stok Aman</span>'
+        )
     stock_status.short_description = 'Status Stok'
     
-    def profit_margin_display(self, obj):
-        return f"{obj.profit_margin:.2f}%"
-    profit_margin_display.short_description = 'Margin (%)'
-    profit_margin_display.admin_order_field = 'selling_price'
+    def get_stock_value(self, obj):
+        """Menghitung dan menampilkan nilai total stok"""
+        value = obj.stock_quantity * obj.purchase_price
+        return format_html(
+            '<strong style="color: #0284c7;">Rp {:,.0f}</strong>',
+            value
+        )
+    get_stock_value.short_description = 'Nilai Stok'
+    
+    def get_profit_margin(self, obj):
+        """Menghitung dan menampilkan margin keuntungan"""
+        if obj.purchase_price > 0:
+            margin = ((obj.selling_price - obj.purchase_price) / obj.purchase_price) * 100
+            
+            # Warna berdasarkan margin
+            if margin > 30:
+                color = '#16a34a'  # hijau
+            elif margin > 20:
+                color = '#059669'  # hijau muda
+            elif margin > 10:
+                color = '#f59e0b'  # kuning
+            else:
+                color = '#dc2626'  # merah
+            
+            return format_html(
+                '<span style="color: {}; font-weight: bold;">{:.2f}%</span>',
+                color, margin
+            )
+        return format_html('<span style="color: #6b7280;">0%</span>')
+    get_profit_margin.short_description = 'Margin Keuntungan'
+    
+    def get_profit_margin_display(self, obj):
+        """Versi simple untuk list display"""
+        if obj.purchase_price > 0:
+            margin = ((obj.selling_price - obj.purchase_price) / obj.purchase_price) * 100
+            return f"{margin:.2f}%"
+        return "0%"
+    get_profit_margin_display.short_description = 'Margin (%)'
+    get_profit_margin_display.admin_order_field = 'selling_price'
+    
+    def get_is_low_stock(self, obj):
+        """Menampilkan status stok rendah dengan detail"""
+        is_low = obj.stock_quantity <= obj.minimum_stock
+        
+        if is_low:
+            shortage = obj.minimum_stock - obj.stock_quantity
+            return format_html(
+                '<div style="color: #dc2626;">'
+                '<strong>⚠️ Ya</strong><br>'
+                '<small>Stok: {} | Min: {} | Kurang: {}</small>'
+                '</div>',
+                obj.stock_quantity, obj.minimum_stock, shortage
+            )
+        return format_html(
+            '<div style="color: #16a34a;">'
+            '<strong>✅ Tidak</strong><br>'
+            '<small>Stok: {} | Min: {}</small>'
+            '</div>',
+            obj.stock_quantity, obj.minimum_stock
+        )
+    get_is_low_stock.short_description = 'Status Stok Rendah'
 
 
 @admin.register(StockTransaction)
@@ -246,7 +316,6 @@ class StockTransactionAdmin(admin.ModelAdmin):
     search_fields = ('product__name', 'product__sku', 'notes', 'created_by__username')
     readonly_fields = ('created_at', 'created_by')
     list_per_page = 50
-    view_on_site = False  
     
     fieldsets = (
         ('Informasi Transaksi', {
@@ -274,17 +343,41 @@ class StockTransactionAdmin(admin.ModelAdmin):
         return queryset
     
     def transaction_type_display(self, obj):
+        """Menampilkan tipe transaksi dengan icon dan warna"""
         if obj.transaction_type == 'IN':
-            return '📥 Stok Masuk'
-        return '📤 Stok Keluar'
+            return format_html(
+                '<span style="color: #16a34a; font-weight: bold;">📥 Stok Masuk</span>'
+            )
+        return format_html(
+            '<span style="color: #dc2626; font-weight: bold;">📤 Stok Keluar</span>'
+        )
     transaction_type_display.short_description = 'Tipe Transaksi'
     transaction_type_display.admin_order_field = 'transaction_type'
     
     def save_model(self, request, obj, form, change):
+        """Auto set created_by dan update stok produk"""
         if not change:  # Hanya untuk create baru
             obj.created_by = request.user
+        
+        # Simpan transaksi terlebih dahulu
         super().save_model(request, obj, form, change)
+        
+        # Update stok produk
+        product = obj.product
+        if obj.transaction_type == 'IN':
+            product.stock_quantity += obj.quantity
+        else:  # OUT
+            product.stock_quantity = max(0, product.stock_quantity - obj.quantity)
+        product.save()
+    
+    def get_form(self, request, obj=None, **kwargs):
+        """Set default value untuk created_by di form"""
+        form = super().get_form(request, obj, **kwargs)
+        if not obj:  # Hanya untuk form create baru
+            form.base_fields['created_by'].initial = request.user
+        return form
     
     def has_delete_permission(self, request, obj=None):
-        # Opsional: Batasi penghapusan transaksi untuk audit trail
+        """Batasi penghapusan transaksi untuk audit trail"""
+        # Hanya superuser yang bisa delete transaksi
         return request.user.is_superuser

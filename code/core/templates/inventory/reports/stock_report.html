@@ -26,46 +26,76 @@
     <!-- Filter -->
     <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
         <form method="GET" class="flex gap-4">
-            <select name="category" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg">
+            <select name="category" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none">
                 <option value="">Semua Kategori</option>
                 {% for cat in categories %}
                 <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>
-                    {{ cat.name }}
+                    {{ cat.name }} ({{ cat.product_count }})
                 </option>
                 {% endfor %}
             </select>
-            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg">
-                Filter
+            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg transition-colors">
+                <i class="fas fa-filter mr-2"></i>Filter
             </button>
+            {% if selected_category %}
+            <a href="{% url 'stock_report' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg transition-colors">
+                <i class="fas fa-times mr-2"></i>Reset
+            </a>
+            {% endif %}
         </form>
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produk</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stok</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga Beli</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nilai Stok</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produk</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga Beli</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai Stok</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for product in products %}
-                    <tr class="hover:bg-gray-50">
+                    <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4">
                             <div>
                                 <div class="font-medium text-gray-900">{{ product.name }}</div>
-                                <div class="text-sm text-gray-500">{{ product.sku }}</div>
+                                <div class="text-sm text-gray-500">SKU: {{ product.sku }}</div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-900">{{ product.category.name }}</td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ product.stock_quantity }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                                {{ product.category.name }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">{{ product.supplier.name }}</td>
+                        <td class="px-6 py-4 text-sm font-medium">
+                            {% if product.stock_quantity <= product.minimum_stock %}
+                            <span class="text-red-600 font-bold">{{ product.stock_quantity }}</span>
+                            {% else %}
+                            <span class="text-gray-900">{{ product.stock_quantity }}</span>
+                            {% endif %}
+                        </td>
                         <td class="px-6 py-4 text-sm text-gray-900"><span class="currency">{{ product.purchase_price }}</span></td>
                         <td class="px-6 py-4 text-sm font-semibold text-gray-900"><span class="currency">{{ product.stock_value }}</span></td>
+                        <td class="px-6 py-4 text-sm">
+                            <a href="{% url 'product_detail' product.pk %}" class="text-primary-600 hover:text-primary-800">
+                                <i class="fas fa-eye"></i> Detail
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                            <i class="fas fa-inbox text-4xl mb-2"></i>
+                            <p>Tidak ada produk yang ditemukan</p>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -73,55 +103,21 @@
         </div>
     </div>
 
-    <!-- Pagination -->
-{% if products.has_other_pages %}
-<div class="mt-6 flex items-center justify-between">
-    <div>
-        <p class="text-sm text-gray-700">
-            Menampilkan <span class="font-medium">{{ products.start_index }}</span> hingga 
-            <span class="font-medium">{{ products.end_index }}</span> dari 
-            <span class="font-medium">{{ products.paginator.count }}</span> produk
-        </p>
+    <!-- Export Options -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-download mr-2"></i>Export Laporan
+        </h3>
+        <div class="flex flex-wrap gap-3">
+            <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
+                <i class="fas fa-print"></i>
+                <span>Cetak</span>
+            </button>
+            <a href="/admin/core/product/" target="_blank" class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2">
+                <i class="fas fa-cog"></i>
+                <span>Kelola di Admin</span>
+            </a>
+        </div>
     </div>
-    <div>
-        <nav class="inline-flex rounded-md shadow-sm" aria-label="Pagination">
-            {% if products.has_previous %}
-                <a href="?page=1{% if selected_category %}&category={{ selected_category }}{% endif %}" 
-                   class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    Pertama
-                </a>
-                <a href="?page={{ products.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}" 
-                   class="px-3 py-2 border-t border-b border-l border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    Sebelumnya
-                </a>
-            {% endif %}
-
-            {% for num in products.paginator.page_range %}
-                {% if products.number == num %}
-                    <span class="px-3 py-2 border-t border-b border-gray-300 bg-primary-600 text-sm font-medium text-white">
-                        {{ num }}
-                    </span>
-                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-                    <a href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}" 
-                       class="px-3 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        {{ num }}
-                    </a>
-                {% endif %}
-            {% endfor %}
-
-            {% if products.has_next %}
-                <a href="?page={{ products.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}" 
-                   class="px-3 py-2 border-t border-b border-r border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    Berikutnya
-                </a>
-                <a href="?page={{ products.paginator.num_pages }}{% if selected_category %}&category={{ selected_category }}{% endif %}" 
-                   class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    Terakhir
-                </a>
-            {% endif %}
-        </nav>
-    </div>
-</div>
-{% endif %}
 </div>
 {% endblock %}
