@@ -16,33 +16,104 @@ FAS004,Gaun Panjang Satin,Pakaian Wanita,CV Dunia Fasion,200000,320000,12,5
 FAS005,Cardigan Rajut Wanita,Pakaian Wanita,CV Dunia Fasion,120000,200000,30,8
 FAS006,Syal Fashion Warna-Warni,Aksesoris,CV Dunia Fasion,25000,45000,80,20
 FAS007,Topi Baseball Unisex,Aksesoris,CV Dunia Fasion,35000,60000,60,15
+FAS008,Tas Ransel Laptop,Aksesoris,CV Dunia Fasion,180000,280000,25,8
+FAS009,Dompet Kulit Pria,Aksesoris,CV Dunia Fasion,90000,145000,40,12
+FAS010,Jam Tangan Fashion Wanita,Aksesoris,CV Dunia Fasion,150000,240000,18,5
+SPT001,Sepatu Casual Pria,Sepatu & Sandal,CV Dunia Fasion,180000,280000,22,8
+SPT002,Sandal Jepit Karet,Sepatu & Sandal,CV Dunia Fasion,25000,40000,100,30
+SPT003,Sepatu Formal Pantofel,Sepatu & Sandal,CV Dunia Fasion,280000,420000,15,5
+SPT004,Sandal Gunung Outdoor,Sepatu & Sandal,CV Dunia Fasion,120000,180000,30,10
+SPT005,Sepatu Slip On Wanita,Sepatu & Sandal,CV Dunia Fasion,140000,220000,20,7
 OLG001,Bola Futsal Mikasa,Olahraga,PT Sumber Olahraga Mandiri,130000,180000,20,5
 OLG002,Matras Yoga Premium,Olahraga,PT Sumber Olahraga Mandiri,150000,220000,40,10
 OLG003,Sarung Tangan Gym,Olahraga,PT Sumber Olahraga Mandiri,45000,80000,90,20
 OLG004,Raket Badminton Yonex,Olahraga,PT Sumber Olahraga Mandiri,250000,350000,30,10
 OLG005,Sepatu Lari Nike,Olahraga,PT Sumber Olahraga Mandiri,800000,1100000,15,5
+OLG006,Dumbell Set 10kg,Olahraga,PT Sumber Olahraga Mandiri,280000,380000,12,4
+OLG007,Bola Basket Molten,Olahraga,PT Sumber Olahraga Mandiri,180000,260000,18,6
 DPR001,Panci Stainless 24cm,Peralatan Dapur,Toko Grosir Sentosa,130000,180000,25,5
 DPR002,Wajan Teflon 28cm,Peralatan Dapur,Toko Grosir Sentosa,90000,135000,30,10
 DPR003,Sendok Garpu Set Isi 12,Peralatan Dapur,Toko Grosir Sentosa,35000,60000,80,20
 DPR004,Blender Philips,Peralatan Dapur,Toko Grosir Sentosa,375000,480000,10,4
 DPR005,Rice Cooker Miyako,Peralatan Dapur,Toko Grosir Sentosa,290000,375000,15,5
+DPR006,Toples Kaca Set 3,Peralatan Dapur,Toko Grosir Sentosa,85000,125000,35,12
+DPR007,Pisau Set Stainless 6pcs,Peralatan Dapur,Toko Grosir Sentosa,120000,175000,20,8
 MKM001,Kopi Arabica Premium 1kg,Makanan & Minuman,UD Sumber Rezeki,90000,120000,40,10
 MKM002,Teh Hijau Box 50,Makanan & Minuman,UD Sumber Rezeki,42000,60000,65,20
 MKM003,Mie Instan Dus Isi 40,Makanan & Minuman,UD Sumber Rezeki,95000,130000,35,10
 MKM004,Biskuit Marie Regal 600gr,Makanan & Minuman,UD Sumber Rezeki,45000,70000,50,15
 MKM005,Susu Ultra UHT 1L (6pcs),Makanan & Minuman,UD Sumber Rezeki,75000,100000,25,10
+MKM006,Cokelat Batang Silverqueen,Makanan & Minuman,UD Sumber Rezeki,12000,18000,120,40
+MKM007,Snack Keripik Singkong,Makanan & Minuman,UD Sumber Rezeki,15000,25000,85,25
 KES001,Masker Medis Box 50,Kesehatan,PT Kesehatan Prima,45000,65000,100,30
 KES002,Vitamin C 1000mg 60 tabs,Kesehatan,PT Kesehatan Prima,80000,120000,55,20
 KES003,Hand Sanitizer 500ml,Kesehatan,PT Kesehatan Prima,25000,40000,150,50
 KES004,Tensi Digital Omron,Kesehatan,PT Kesehatan Prima,350000,460000,8,3
 KES005,Obat Batuk Anak Syrup,Kesehatan,PT Kesehatan Prima,18000,30000,100,30
+KES006,Termometer Digital,Kesehatan,PT Kesehatan Prima,45000,70000,45,15
+KES007,Plester Luka Box 50,Kesehatan,PT Kesehatan Prima,22000,35000,80,25
+KNT001,Skincare Serum Vitamin C,Kecantikan,PT Kesehatan Prima,120000,180000,35,10
+KNT002,Lipstik Matte Long Lasting,Kecantikan,PT Kesehatan Prima,65000,95000,60,20
+KNT003,Masker Wajah Sheet 10pcs,Kecantikan,PT Kesehatan Prima,45000,70000,50,15
+KNT004,Sabun Cuci Muka Herbal,Kecantikan,PT Kesehatan Prima,35000,55000,70,20
+KNT005,Parfum EDT 100ml,Kecantikan,PT Kesehatan Prima,180000,280000,20,8
+KNT006,Shampo Anti Ketombe 500ml,Kecantikan,PT Kesehatan Prima,42000,65000,65,20
 RHT001,Sapu Ijuk Panjang,Peralatan Rumah Tangga,Toko Grosir Sentosa,20000,35000,80,25
 RHT002,Pel Mikrofiber + Ember,Peralatan Rumah Tangga,Toko Grosir Sentosa,40000,65000,40,10
 RHT003,Tempat Sampah 30L,Peralatan Rumah Tangga,Toko Grosir Sentosa,70000,100000,25,8
 RHT004,Ember Plastik 20L,Peralatan Rumah Tangga,Toko Grosir Sentosa,18000,30000,100,30
 RHT005,Spons Cuci Piring Isi 5,Peralatan Rumah Tangga,Toko Grosir Sentosa,12000,20000,120,40
+RHT006,Gantungan Baju Plastik 10pcs,Peralatan Rumah Tangga,Toko Grosir Sentosa,15000,25000,90,30
+RHT007,Lap Microfiber 40x40,Peralatan Rumah Tangga,Toko Grosir Sentosa,18000,30000,75,25
+FRN001,Lemari Pakaian 2 Pintu,Furnitur,Toko Grosir Sentosa,1200000,1600000,8,3
+FRN002,Meja Belajar Minimalis,Furnitur,Toko Grosir Sentosa,650000,900000,12,5
+FRN003,Kursi Gaming Ergonomis,Furnitur,Toko Grosir Sentosa,950000,1300000,10,4
+FRN004,Rak Buku 5 Tingkat,Furnitur,Toko Grosir Sentosa,480000,680000,15,6
+FRN005,Kasur Busa Single 90x200,Furnitur,Toko Grosir Sentosa,550000,780000,20,8
+FRN006,Sofa Bed Minimalis,Furnitur,Toko Grosir Sentosa,2800000,3600000,5,2
 OFF001,Pensil 2B Box 12,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,15000,25000,200,60
 OFF002,Spidol Whiteboard Hitam,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,10000,15000,300,100
 OFF003,Kertas A4 80gsm Rim,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,42000,60000,250,80
 OFF004,Buku Tulis 100 Lembar,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,7000,12000,450,150
 OFF005,Lem Kertas Cair,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,8000,13000,350,120
+OFF006,Stapler Joyko HD-50,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,22000,35000,85,25
+OFF007,Penggaris Plastik 30cm,Alat Tulis & Kantor,PT Solusi Kantor Sejahtera,5000,8000,180,60
+MAI001,Robot Mainan Remote Control,Mainan Anak,Toko Mainan Anak Ceria,180000,280000,25,8
+MAI002,Puzzle Kayu Edukasi,Mainan Anak,Toko Mainan Anak Ceria,55000,85000,40,12
+MAI003,Boneka Teddy Bear Besar,Mainan Anak,Toko Mainan Anak Ceria,120000,180000,18,6
+MAI004,Lego Set 100 Pieces,Mainan Anak,Toko Mainan Anak Ceria,95000,145000,30,10
+MAI005,Mobil Mobilan Die Cast,Mainan Anak,Toko Mainan Anak Ceria,35000,55000,80,25
+MAI006,Mainan Masak Masakan Set,Mainan Anak,Toko Mainan Anak Ceria,75000,115000,22,8
+OUT001,Tenda Camping 4 Orang,Outdoor & Camping,PT Sumber Olahraga Mandiri,650000,920000,10,4
+OUT002,Sleeping Bag Tebal,Outdoor & Camping,PT Sumber Olahraga Mandiri,180000,280000,20,6
+OUT003,Kompor Portable Gas,Outdoor & Camping,PT Sumber Olahraga Mandiri,95000,145000,28,10
+OUT004,Lampu Emergency LED,Outdoor & Camping,PT Sumber Olahraga Mandiri,55000,85000,45,15
+OUT005,Tas Carrier 60L,Outdoor & Camping,PT Sumber Olahraga Mandiri,420000,620000,12,5
+OUT006,Matras Camping Foam,Outdoor & Camping,PT Sumber Olahraga Mandiri,85000,130000,35,12
+OTO001,Oli Mesin Mobil 4L,Otomotif,PT Distribusi Nusantara,120000,165000,40,12
+OTO002,Ban Motor Tubeless,Otomotif,PT Distribusi Nusantara,180000,260000,30,10
+OTO003,Aki Motor Kering 5A,Otomotif,PT Distribusi Nusantara,220000,310000,18,6
+OTO004,Wiper Mobil Bosch 24,Otomotif,PT Distribusi Nusantara,85000,125000,35,12
+OTO005,Lampu LED Mobil H4,Otomotif,PT Distribusi Nusantara,95000,145000,40,15
+OTO006,Kampas Rem Depan Motor,Otomotif,PT Distribusi Nusantara,45000,70000,60,20
+OTO007,Kaca Spion Motor Universal,Otomotif,PT Distribusi Nusantara,35000,55000,75,25
+BKU001,Novel Bestseller Terbaru,Buku & Majalah,CV Maju Bersama,65000,95000,35,10
+BKU002,Buku Resep Masakan Nusantara,Buku & Majalah,CV Maju Bersama,85000,125000,20,8
+BKU003,Komik Anak Bergambar,Buku & Majalah,CV Maju Bersama,35000,55000,50,15
+BKU004,Majalah Teknologi Bulanan,Buku & Majalah,CV Maju Bersama,45000,65000,60,20
+BKU005,Buku Motivasi Sukses,Buku & Majalah,CV Maju Bersama,75000,110000,28,10
+BKU006,Atlas Dunia Lengkap,Buku & Majalah,CV Maju Bersama,95000,145000,15,5
+KOM001,Laptop Asus Core i5,Komputer & Laptop,PT Elektronik Jaya,6500000,8200000,8,3
+KOM002,Mouse Gaming RGB,Komputer & Laptop,PT Elektronik Jaya,180000,260000,35,12
+KOM003,Keyboard Mechanical RGB,Komputer & Laptop,PT Elektronik Jaya,420000,590000,20,8
+KOM004,Webcam HD 1080p,Komputer & Laptop,PT Elektronik Jaya,280000,390000,18,6
+KOM005,SSD External 1TB,Komputer & Laptop,PT Elektronik Jaya,950000,1280000,12,5
+KOM006,Monitor LED 24 inch,Komputer & Laptop,PT Elektronik Jaya,1400000,1850000,10,4
+KOM007,Headset Gaming 7.1,Komputer & Laptop,PT Elektronik Jaya,350000,490000,22,8
+GAM001,PlayStation 5 Console,Gaming,PT Elektronik Jaya,7500000,9200000,5,2
+GAM002,Nintendo Switch OLED,Gaming,PT Elektronik Jaya,4800000,5900000,8,3
+GAM003,Xbox Wireless Controller,Gaming,PT Elektronik Jaya,650000,890000,15,5
+GAM004,Gaming Chair RGB,Gaming,Toko Grosir Sentosa,1800000,2400000,10,4
+GAM005,Stick PS4 Dual Shock,Gaming,PT Elektronik Jaya,550000,750000,20,8
+GAM006,Game FIFA 2024 PS5,Gaming,PT Elektronik Jaya,850000,1100000,12,5
+GAM007,VR Headset Meta Quest,Gaming,PT Elektronik Jaya,4200000,5400000,6,2

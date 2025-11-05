@@ -45,7 +45,8 @@
     <!-- Products Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
         {% for product in products %}
-        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border-l-4 {% if product.stock_quantity == 0 %}border-red-600{% else %}border-yellow-500{% endif %}">
+        <div
+            class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border-l-4 {% if product.stock_quantity == 0 %}border-red-600{% else %}border-yellow-500{% endif %}">
             <!-- Header -->
             <div class="flex items-start justify-between mb-4">
                 <div class="flex-1">
@@ -81,7 +82,8 @@
             <div class="border-t border-gray-200 pt-4 mb-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-gray-600">Stok Saat Ini</span>
-                    <span class="text-2xl font-bold {% if product.stock_quantity == 0 %}text-red-600{% else %}text-yellow-600{% endif %}">
+                    <span
+                        class="text-2xl font-bold {% if product.stock_quantity == 0 %}text-red-600{% else %}text-yellow-600{% endif %}">
                         {{ product.stock_quantity }}
                     </span>
                 </div>
@@ -115,9 +117,7 @@
                     Perlu Restock
                 </p>
                 <p class="text-lg font-bold text-blue-900">
-                    {% widthratio product.minimum_stock 1 1 as min_stock %}
-                    {% widthratio product.stock_quantity 1 1 as curr_stock %}
-                    {{ min_stock|add:curr_stock|mul:-1|add:min_stock }} unit
+                    {{ product.restock_quantity }} unit
                 </p>
             </div>
 
@@ -163,24 +163,23 @@
                 <span class="px-3 py-2 border-t border-b border-gray-300 bg-primary-600 text-sm font-medium text-white">
                     {{ num }}
                 </span>
-                {% elif num > products.number|add:'-2' and num < products.number|add:'2' %}
-                <a href="?page={{ num }}"
+                {% elif num > products.number|add:'-2' and num < products.number|add:'2' %} <a href="?page={{ num }}"
                     class="px-3 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                     {{ num }}
-                </a>
-                {% endif %}
-                {% endfor %}
+                    </a>
+                    {% endif %}
+                    {% endfor %}
 
-                {% if products.has_next %}
-                <a href="?page={{ products.next_page_number }}"
-                    class="px-3 py-2 border-t border-b border-r border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    Berikutnya <i class="fas fa-angle-right"></i>
-                </a>
-                <a href="?page={{ products.paginator.num_pages }}"
-                    class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    Terakhir <i class="fas fa-angle-double-right"></i>
-                </a>
-                {% endif %}
+                    {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}"
+                        class="px-3 py-2 border-t border-b border-r border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Berikutnya <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="?page={{ products.paginator.num_pages }}"
+                        class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Terakhir <i class="fas fa-angle-double-right"></i>
+                    </a>
+                    {% endif %}
             </nav>
         </div>
     </div>

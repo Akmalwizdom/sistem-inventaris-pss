@@ -1,0 +1,581 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Statistik - InventoryPro{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            <i class="fas fa-chart-line mr-2 text-primary-600"></i>
+            Dashboard Statistik
+        </h1>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+        <!-- Cards tetap sama -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between mb-4">
+                <i class="fas fa-cube text-3xl opacity-80"></i>
+                <span class="bg-white bg-opacity-20 text-xs px-2 py-1 rounded">Total</span>
+            </div>
+            <p class="text-3xl font-bold mb-1" data-countup="{{ total_products }}">0</p>
+            <p class="text-sm opacity-80">Produk</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between mb-4">
+                <i class="fas fa-tags text-3xl opacity-80"></i>
+                <span class="bg-white bg-opacity-20 text-xs px-2 py-1 rounded">Total</span>
+            </div>
+            <p class="text-3xl font-bold mb-1" data-countup="{{ total_categories }}">0</p>
+            <p class="text-sm opacity-80">Kategori</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between mb-4">
+                <i class="fas fa-truck text-3xl opacity-80"></i>
+                <span class="bg-white bg-opacity-20 text-xs px-2 py-1 rounded">Total</span>
+            </div>
+            <p class="text-3xl font-bold mb-1" data-countup="{{ total_suppliers }}">0</p>
+            <p class="text-sm opacity-80">Supplier</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between mb-4">
+                <i class="fas fa-exchange-alt text-3xl opacity-80"></i>
+                <span class="bg-white bg-opacity-20 text-xs px-2 py-1 rounded">Total</span>
+            </div>
+            <p class="text-3xl font-bold mb-1" data-countup="{{ total_transactions }}">0</p>
+            <p class="text-sm opacity-80">Transaksi</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between mb-4">
+                <i class="fas fa-exclamation-triangle text-3xl opacity-80"></i>
+                <span class="bg-white bg-opacity-20 text-xs px-2 py-1 rounded">Alert</span>
+            </div>
+            <p class="text-3xl font-bold mb-1" data-countup="{{ low_stock_count }}">0</p>
+            <p class="text-sm opacity-80">Stok Rendah</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between mb-4">
+                <i class="fas fa-dollar-sign text-3xl opacity-80"></i>
+                <span class="bg-white bg-opacity-20 text-xs px-2 py-1 rounded">Nilai</span>
+            </div>
+            <p class="text-xl font-bold mb-1">Rp <span data-countup="{{ total_stock_value }}">0</span></p>
+            <p class="text-sm opacity-80">Total Stok</p>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Transaction Trend Chart -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-chart-line mr-2 text-primary-600"></i>
+                Trend Transaksi (7 Hari Terakhir)
+            </h3>
+            <div style="position: relative; height: 300px;">
+                <canvas id="transactionTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Stock Status Pie Chart -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-chart-pie mr-2 text-primary-600"></i>
+                Status Stok Produk
+            </h3>
+            <div style="position: relative; height: 300px;">
+                <canvas id="stockStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- More Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Category Distribution -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-chart-bar mr-2 text-primary-600"></i>
+                Distribusi Produk per Kategori
+            </h3>
+            <div style="position: relative; height: 300px;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Stock Value by Category -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-coins mr-2 text-primary-600"></i>
+                Nilai Stok per Kategori
+            </h3>
+            <div style="position: relative; height: 300px;">
+                <canvas id="categoryValueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplier Chart -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Supplier Distribution -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-truck mr-2 text-primary-600"></i>
+                Top 5 Supplier (Jumlah Produk)
+            </h3>
+            <div style="position: relative; height: 300px;">
+                <canvas id="supplierChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Transaction Type Distribution -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-exchange-alt mr-2 text-primary-600"></i>
+                Rasio Transaksi Masuk vs Keluar
+            </h3>
+            <div style="position: relative; height: 300px;">
+                <canvas id="transactionTypeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products Tables -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Top Stock -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-layer-group mr-2 text-blue-600"></i>
+                Top 5 Stok Tertinggi
+            </h3>
+            <div class="space-y-3">
+                {% for product in top_stock_products %}
+                <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-transparent rounded-lg hover:from-blue-100 transition-all">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ product.name }}</p>
+                        <p class="text-xs text-gray-500">{{ product.sku }}</p>
+                    </div>
+                    <div class="ml-2 flex-shrink-0">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800">
+                            {{ product.stock_quantity }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm text-center py-4">Tidak ada data</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Top Value -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-coins mr-2 text-yellow-600"></i>
+                Top 5 Nilai Stok
+            </h3>
+            <div class="space-y-3">
+                {% for product in top_value_products %}
+                <div class="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-transparent rounded-lg hover:from-yellow-100 transition-all">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ product.name }}</p>
+                        <p class="text-xs text-gray-500">{{ product.sku }}</p>
+                    </div>
+                    <div class="ml-2 flex-shrink-0">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">
+                            <span class="currency-mini">{{ product.stock_value }}</span>
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm text-center py-4">Tidak ada data</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Top Margin -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-percent mr-2 text-green-600"></i>
+                Top 5 Margin Tertinggi
+            </h3>
+            <div class="space-y-3">
+                {% for product in top_margin_products %}
+                <div class="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-transparent rounded-lg hover:from-green-100 transition-all">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ product.name }}</p>
+                        <p class="text-xs text-gray-500">{{ product.sku }}</p>
+                    </div>
+                    <div class="ml-2 flex-shrink-0">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800">
+                            {{ product.profit_margin|floatformat:1 }}%
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm text-center py-4">Tidak ada data</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Chart Data & Initialization -->
+<script>
+// Pastikan hanya execute sekali
+let chartsInitialized = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Cegah double initialization
+    if (chartsInitialized) return;
+    chartsInitialized = true;
+
+    // ===== COUNTUP ANIMATION =====
+    const counters = document.querySelectorAll('[data-countup]');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-countup'));
+        if (isNaN(target)) return;
+        
+        const duration = 2000;
+        const increment = target / (duration / 16);
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                counter.textContent = target.toLocaleString('id-ID');
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current).toLocaleString('id-ID');
+            }
+        }, 16);
+    });
+
+    // Format currency mini
+    const currencyMinis = document.querySelectorAll('.currency-mini');
+    currencyMinis.forEach(el => {
+        const value = parseFloat(el.textContent);
+        if (value >= 1000000) {
+            el.textContent = (value / 1000000).toFixed(1) + 'M';
+        } else if (value >= 1000) {
+            el.textContent = (value / 1000).toFixed(0) + 'K';
+        }
+    });
+
+    // ===== CHART.JS DEFAULT CONFIG =====
+    Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif";
+    Chart.defaults.color = '#6b7280';
+    Chart.defaults.responsive = true;
+    Chart.defaults.maintainAspectRatio = false;
+    
+    // ===== TRANSACTION TREND CHART =====
+    const transactionDates = [
+        {% for day_stat in daily_transactions %}
+            '{{ day_stat.date|date:"d M" }}',
+        {% endfor %}
+    ];
+    
+    const stockInData = [
+        {% for day_stat in daily_transactions %}
+            {{ day_stat.stock_in }},
+        {% endfor %}
+    ];
+    
+    const stockOutData = [
+        {% for day_stat in daily_transactions %}
+            {{ day_stat.stock_out }},
+        {% endfor %}
+    ];
+
+    new Chart(document.getElementById('transactionTrendChart'), {
+        type: 'line',
+        data: {
+            labels: transactionDates,
+            datasets: [
+                {
+                    label: 'Stock In',
+                    data: stockInData,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Stock Out',
+                    data: stockOutData,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#ef4444',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // ===== STOCK STATUS CHART =====
+    const totalProducts = {{ total_products }};
+    const lowStockCount = {{ low_stock_count }};
+    const normalStockCount = totalProducts - lowStockCount;
+
+    new Chart(document.getElementById('stockStatusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Stok Aman', 'Stok Rendah'],
+            datasets: [{
+                data: [normalStockCount, lowStockCount],
+                backgroundColor: ['#10b981', '#ef4444'],
+                borderWidth: 2,
+                borderColor: '#fff',
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: { size: 12 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // ===== CATEGORY CHART =====
+    const categoryNames = [{% for cat in category_stats %}'{{ cat.name|escapejs }}',{% endfor %}];
+    const categoryProductCounts = [{% for cat in category_stats %}{{ cat.product_count }},{% endfor %}];
+
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'bar',
+        data: {
+            labels: categoryNames,
+            datasets: [{
+                label: 'Jumlah Produk',
+                data: categoryProductCounts,
+                backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#6366f1'],
+                borderRadius: 8,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // ===== CATEGORY VALUE CHART =====
+    const categoryValues = [{% for cat in category_stats %}{{ cat.total_value|default:0 }},{% endfor %}];
+
+    new Chart(document.getElementById('categoryValueChart'), {
+        type: 'bar',
+        data: {
+            labels: categoryNames,
+            datasets: [{
+                label: 'Nilai Stok (Rp)',
+                data: categoryValues,
+                backgroundColor: 'rgba(14, 165, 233, 0.8)',
+                borderRadius: 8,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Rp ' + context.parsed.x.toLocaleString('id-ID');
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    ticks: {
+                        callback: function(value) {
+                            if (value >= 1000000) return (value / 1000000) + 'M';
+                            if (value >= 1000) return (value / 1000) + 'K';
+                            return value;
+                        }
+                    }
+                },
+                y: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // ===== SUPPLIER CHART =====
+    const supplierNames = [{% for sup in supplier_stats|slice:":5" %}'{{ sup.name }}',{% endfor %}];
+    const supplierProductCounts = [{% for sup in supplier_stats|slice:":5" %}{{ sup.product_count }},{% endfor %}];
+
+    new Chart(document.getElementById('supplierChart'), {
+        type: 'polarArea',
+        data: {
+            labels: supplierNames,
+            datasets: [{
+                data: supplierProductCounts,
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.7)',
+                    'rgba(139, 92, 246, 0.7)',
+                    'rgba(236, 72, 153, 0.7)',
+                    'rgba(245, 158, 11, 0.7)',
+                    'rgba(16, 185, 129, 0.7)'
+                ],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        font: { size: 11 }
+                    }
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                }
+            }
+        }
+    });
+
+    // ===== TRANSACTION TYPE CHART =====
+    const totalStockIn = {{ transaction_stats.total_in|default:0 }};
+    const totalStockOut = {{ transaction_stats.total_out|default:0 }};
+
+    new Chart(document.getElementById('transactionTypeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Stock In', 'Stock Out'],
+            datasets: [{
+                data: [totalStockIn, totalStockOut],
+                backgroundColor: ['#10b981', '#ef4444'],
+                borderWidth: 3,
+                borderColor: '#fff',
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 13,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = totalStockIn + totalStockOut;
+                            const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                            return context.label + ': ' + context.parsed.toLocaleString() + ' unit (' + percentage + '%)';
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+
+    console.log('✅ All charts initialized successfully');
+});
+</script>
+{% endblock %}

@@ -8,6 +8,9 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('product/<int:pk>/', views.product_detail_html, name='product_detail'),
     
+    # Dashboard Statistik 
+    path('dashboard/', views.dashboard_stats_html, name='dashboard_stats'),
+
     # Reports (HTML)
     path('reports/stock/', views.stock_report_html, name='stock_report'),
     path('reports/low-stock/', views.low_stock_report_html, name='low_stock_report'),

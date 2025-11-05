@@ -205,10 +205,17 @@ def low_stock_report_html(request):
         stock_quantity__lte=F('minimum_stock')
     ).order_by('stock_quantity')
 
+    # Tambahkan field restock_quantity di setiap produk
+    products_with_restock = []
+    for product in products:
+        restock_quantity = max(0, product.minimum_stock - product.stock_quantity)
+        product.restock_quantity = restock_quantity
+        products_with_restock.append(product)
+
     total_low_stock = products.count()
 
     # Pagination
-    paginator = Paginator(products, 20)
+    paginator = Paginator(products_with_restock, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -873,3 +880,134 @@ def testing(request):
             'transactions': transactions_count
         }
     })
+
+def dashboard_stats_html(request):
+    """Dashboard statistik lengkap (HTML)"""
+    from decimal import Decimal
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # === OVERVIEW STATISTICS ===
+    total_products = Product.objects.count()
+    total_categories = Category.objects.count()
+    total_suppliers = Supplier.objects.count()
+    
+    # Total nilai stok
+    total_stock_value = Product.objects.aggregate(
+        total=Sum(F('stock_quantity') * F('purchase_price'))
+    )['total'] or 0
+    
+    # Produk stok rendah
+    low_stock_products = Product.objects.filter(
+        stock_quantity__lte=F('minimum_stock')
+    )
+    low_stock_count = low_stock_products.count()
+    
+    # Total transaksi
+    total_transactions = StockTransaction.objects.count()
+    
+    # === PRODUCT STATISTICS ===
+    # Produk dengan stok tertinggi
+    top_stock_products = Product.objects.select_related(
+        'category', 'supplier'
+    ).order_by('-stock_quantity')[:5]
+    
+    # Produk dengan nilai stok tertinggi
+    products_with_value = Product.objects.select_related('category', 'supplier').all()
+    top_value_products = []
+    for product in products_with_value:
+        product.stock_value = product.stock_quantity * product.purchase_price
+        top_value_products.append(product)
+    top_value_products = sorted(top_value_products, key=lambda x: x.stock_value, reverse=True)[:5]
+    
+    # Produk dengan margin tertinggi
+    products_with_margin = []
+    for product in products_with_value:
+        if product.purchase_price > 0:
+            margin = ((product.selling_price - product.purchase_price) / product.purchase_price) * 100
+            product.profit_margin = margin
+            products_with_margin.append(product)
+    top_margin_products = sorted(products_with_margin, key=lambda x: x.profit_margin, reverse=True)[:5]
+    
+    # === CATEGORY STATISTICS ===
+    category_stats = Category.objects.annotate(
+        product_count=Count('products'),
+        total_stock=Sum('products__stock_quantity'),
+        total_value=Sum(F('products__stock_quantity') * F('products__purchase_price'))
+    ).order_by('-total_value')
+    
+    # === SUPPLIER STATISTICS ===
+    supplier_stats = Supplier.objects.annotate(
+        product_count=Count('products'),
+        total_stock=Sum('products__stock_quantity'),
+        total_value=Sum(F('products__stock_quantity') * F('products__purchase_price'))
+    ).order_by('-total_value')
+    
+    # === TRANSACTION STATISTICS ===
+    transaction_stats = StockTransaction.objects.aggregate(
+        total_in=Sum('quantity', filter=Q(transaction_type='IN')),
+        total_out=Sum('quantity', filter=Q(transaction_type='OUT')),
+    )
+    
+    # Transaksi terbaru
+    recent_transactions = StockTransaction.objects.select_related(
+        'product', 'created_by'
+    ).order_by('-created_at')[:10]
+    
+    # Transaksi per hari (7 hari terakhir)
+    today = timezone.now().date()
+    last_7_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+    
+    daily_transactions = []
+    for day in last_7_days:
+        day_trans = StockTransaction.objects.filter(
+            created_at__date=day
+        ).aggregate(
+            stock_in=Sum('quantity', filter=Q(transaction_type='IN')),
+            stock_out=Sum('quantity', filter=Q(transaction_type='OUT')),
+            count=Count('id')
+        )
+        daily_transactions.append({
+            'date': day,
+            'stock_in': day_trans['stock_in'] or 0,
+            'stock_out': day_trans['stock_out'] or 0,
+            'count': day_trans['count']
+        })
+    
+    # === PRICE STATISTICS ===
+    price_stats = Product.objects.aggregate(
+        avg_purchase=Avg('purchase_price'),
+        avg_selling=Avg('selling_price'),
+        min_price=Min('selling_price'),
+        max_price=Max('selling_price'),
+    )
+    
+    context = {
+        # Overview
+        'total_products': total_products,
+        'total_categories': total_categories,
+        'total_suppliers': total_suppliers,
+        'total_stock_value': total_stock_value,
+        'low_stock_count': low_stock_count,
+        'total_transactions': total_transactions,
+        
+        # Products
+        'top_stock_products': top_stock_products,
+        'top_value_products': top_value_products,
+        'top_margin_products': top_margin_products,
+        'low_stock_products': low_stock_products[:5],
+        
+        # Categories & Suppliers
+        'category_stats': category_stats,
+        'supplier_stats': supplier_stats,
+        
+        # Transactions
+        'transaction_stats': transaction_stats,
+        'recent_transactions': recent_transactions,
+        'daily_transactions': daily_transactions,
+        
+        # Price
+        'price_stats': price_stats,
+    }
+    
+    return render(request, 'inventory/dashboard_stats.html', context)
