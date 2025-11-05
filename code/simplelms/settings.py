@@ -1,4 +1,3 @@
-# simplelms/settings.py
 import os
 from pathlib import Path
 from decouple import config, Csv
@@ -19,11 +18,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Third party
     'silk',
     'widget_tweaks',
     
-    # Local apps
     'core',
 ]
 
@@ -60,15 +57,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'simplelms.wsgi.application'
 SILKY_PYTHON_PROFILER = True
 # Database
-# simplelms/settings.py (Perubahan yang disarankan)
 
 DATABASES = {
     'default': {
         'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': config('DATABASE_NAME', default='simple_lms'), # Ubah default name juga jika perlu
-        'USER': config('DATABASE_USER', default='simple_user'),  # Ambil dari DATABASE_USER
-        'PASSWORD': config('DATABASE_PASSWORD', default='simple_password'), # Ambil dari DATABASE_PASSWORD
-        'HOST': config('DATABASE_HOST', default='postgres'), # Pastikan host membaca DATABASE_HOST
+        'NAME': config('DATABASE_NAME', default='simple_lms'), 
+        'USER': config('DATABASE_USER', default='simple_user'),  
+        'PASSWORD': config('DATABASE_PASSWORD', default='simple_password'),
+        'HOST': config('DATABASE_HOST', default='postgres'), 
         'PORT': config('DB_PORT', default='5432'),
     }
 }
